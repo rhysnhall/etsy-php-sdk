@@ -1,0 +1,27 @@
+{
+  "name": "rhysnhall/etsy-php-sdk",
+  "description": "Unofficial PHP SDK for Etsy.",
+  "type": "library",
+  "keywords": [
+    "etsy",
+    "php",
+    "api"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Rhys Hall",
+      "email": "hello@rhyshall.com",
+      "homepage": "https://github.com/rhysnhall"
+    }
+  ],
+  "require": {
+    "php": ">=5.6.0",
+    "y0lk/oauth1-etsy": "^1.0.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Etsy\\": "src"
+    }
+  }
+}
