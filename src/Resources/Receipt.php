@@ -2,7 +2,7 @@
 
 namespace Etsy\Resources;
 
-use Etsy\Resource;
+use Etsy\{Resource, Etsy};
 
 class Receipt extends Resource {
 

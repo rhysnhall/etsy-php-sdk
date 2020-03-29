@@ -20,6 +20,11 @@ class Etsy {
   const API_URL = 'https://openapi.etsy.com/v2/';
 
   /**
+   *
+   */
+  protected static $instance;
+
+  /**
    * @var array
    */
   protected static $config;
@@ -27,17 +32,17 @@ class Etsy {
   /**
    * @var League\OAuth1\Client\Credentials\TokenCredentials
    */
-  protected $token_credentials;
+  protected static $token_credentials;
 
   /**
    * @var \Y0lk\OAuth1\Client\Server\Etsy
    */
-  protected $server;
+  protected static $server;
 
   /**
    * @var \GuzzleHttp\Client
    */
-  protected $client;
+  protected static $client;
 
   /**
    * @var integer|string
@@ -62,14 +67,14 @@ class Etsy {
     if(!isset($config['consumer_key']) || !isset($config['consumer_secret'])) {
       throw new ApiException("Consumer credentials missing from config file. Ensure both consumer_key and consumer_secret exist.");
     }
-    $this->server = new Server([
+    static::$server = new Server([
       'identifier' => $config['consumer_key'],
       'secret' => $config['consumer_secret'],
       'scope' => isset($config['scope']) ? $config['scope'] : '',
       'callback_uri'=> isset($config['callback_uri']) ? $config['callback_uri'] : 'oob'
     ]);
     // Create the HTTP client.
-    $this->client = $this->server->createHttpClient();
+    static::$client = static::$server->createHttpClient();
 
     if(isset($config['access_key']) && isset($config['access_secret'])) {
       $this->setTokenCredentials($config['access_key'], $config['access_secret']);
@@ -89,7 +94,7 @@ class Etsy {
    * @param string $resource
    * @return array
    */
-  protected static function getCollection(\stdClass $response, string $resource) {
+  public static function getCollection($response, string $resource) {
     if($response == false) {
       return [];
     }
@@ -120,7 +125,7 @@ class Etsy {
    * @param string $resource
    * @return mixed
    */
-  protected static function getResource(\stdClass $response, string $resource) {
+  public static function getResource($response, string $resource) {
     if($response == false) {
       return false;
     }
@@ -166,27 +171,35 @@ class Etsy {
    * @param array $params
    * @return \stdClass
    */
-  protected function makeRequest(string $method, string $url, array $params = []) {
-    // Remove invalid parameters;
-    $params = RequestUtil::validateParameters($params);
-    // Append the query parameters.
-    if(count($params)) {
-      $url .= "?".RequestUtil::prepareParameters($params);
+  public static function makeRequest(string $method, string $url, array $params = []) {
+    $url = self::API_URL.$url;
+    if($method == 'GET') {
+      $params = RequestUtil::validateParameters($params);
+      // Append the query parameters.
+      if(count($params)) {
+        $url .= "?".RequestUtil::prepareParameters($params);
+      }
     }
     // Get the request headers.
-    $options['headers'] = $this->server->getHeaders(
-      $this->token_credentials,
+    $options['headers'] = static::$server->getHeaders(
+      static::$token_credentials,
       $method,
       $url,
       $params
     );
+    if(in_array($method, ['POST', 'PUT'])) {
+      $options['form_params'] = RequestUtil::preparePostData($params);
+    }
     try {
-      $response = $this->client->request($method, $url, $options);
+      $response = static::$client->request($method, $url, $options);
     }
     catch(BadResponseException $e) {
       $response = $e->getResponse();
       $body = $response->getBody();
       $status_code = $response->getStatusCode();
+      if($status_code == 404) {
+        return false;
+      }
       throw new \Exception("Request error. Status code: {$status_code}. Error: {$body}.");
     }
     return json_decode($response->getBody());
@@ -199,7 +212,7 @@ class Etsy {
    * @return void
    */
   public function setScope($scope) {
-    $this->server->setApplicationScope(
+    static::$server->setApplicationScope(
       rawurlencode(PermissionScopes::prepare($scope))
     );
   }
@@ -211,7 +224,7 @@ class Etsy {
    * @return void
    */
   public function setCallbackUri(string $callback_uri) {
-    $this->server->setCallbackUri($callback_uri);
+    static::$server->setCallbackUri($callback_uri);
   }
 
   /**
@@ -220,7 +233,7 @@ class Etsy {
    * @return string
    */
   public function getAuthorizationUrl() {
-    return $this->server->urlAuthorization();
+    return static::$server->urlAuthorization();
   }
 
   /**
@@ -234,7 +247,7 @@ class Etsy {
     $token_credentials = new TokenCredentials;
     $token_credentials->setIdentifier($key);
     $token_credentials->setSecret($secret);
-    $this->token_credentials = $token_credentials;
+    static::$token_credentials = $token_credentials;
   }
 
   /**
@@ -248,7 +261,7 @@ class Etsy {
   public function getTokenCredentials(TemporaryCredentials $temp_creds,
     string $identifier,
     string $code) {
-    $credentials = $this->server->getTokenCredentials(
+    $credentials = static::$server->getTokenCredentials(
       $temp_creds,
       $identifier,
       $code
@@ -262,7 +275,7 @@ class Etsy {
    * @return \League\OAuth1\Client\Credentials\TemporaryCredentials
    */
   public function getTemporaryCredentials() {
-    return $this->server->getTemporaryCredentials();
+    return static::$server->getTemporaryCredentials();
   }
 
   /**
@@ -285,7 +298,7 @@ class Etsy {
    */
   public function getUserId() {
     if(!isset($this->user)) {
-      $user = $this->server->getUserDetails($this->token_credentials);
+      $user = static::$server->getUserDetails(static::$token_credentials);
       return $user->uid;
     }
     return $this->user->user_id;
@@ -322,11 +335,11 @@ class Etsy {
    */
   public function getUser($user_id = false) {
     if(!$user_id) {
-      $user_details = $this->server->getUserDetails($this->token_credentials);
+      $user_details = static::$server->getUserDetails(static::$token_credentials);
       $user_id = $user_details->uid;
     }
-    $url = self::API_URL."users/{$user_id}";
-    $response = $this->makeRequest('GET', $url);
+    $url = "users/{$user_id}";
+    $response = static::makeRequest('GET', $url);
     return static::getResource($response, 'User');
   }
 
@@ -348,13 +361,13 @@ class Etsy {
    */
   public function getShop($shop_id = false) {
     if($shop_id) {
-      $url = self::API_URL."shops/{$shop_id}";
+      $url = "shops/{$shop_id}";
     }
     else {
       $user_id = $this->getUserId();
-      $url = self::API_URL."users/{$user_id}/shops";
+      $url = "users/{$user_id}/shops";
     }
-    $response = $this->makeRequest('GET', $url);
+    $response = static::makeRequest('GET', $url);
     return static::getResource($response, 'Shop');
   }
 
@@ -365,8 +378,8 @@ class Etsy {
    * @return array(Etsy\Resources\Transaction)
    */
   public function getAllTransactions(array $params = []) {
-    $url = self::API_URL."shops/{$this->getShopId()}/transactions";
-    $response = $this->makeRequest('GET', $url, $params);
+    $url = "shops/{$this->getShopId()}/transactions";
+    $response = static::makeRequest('GET', $url, $params);
     return static::getCollection($response, 'Transaction');
   }
 
@@ -377,8 +390,8 @@ class Etsy {
    * @param array $params
    */
   public function getTransaction($transaction_id, array $params = []) {
-    $url = self::API_URL."transactions/{$transaction_id}";
-    $response = $this->makeRequest('GET', $url, $params);
+    $url = "transactions/{$transaction_id}";
+    $response = static::makeRequest('GET', $url, $params);
     return static::getResource($response, 'Transaction');
   }
 

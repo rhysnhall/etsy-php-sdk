@@ -9,7 +9,7 @@ namespace Etsy\Utils;
  */
 class Request {
 
-  const ALLOWED_PARAMETERS = ['limit', 'offset', 'page'];
+  const ALLOWED_PARAMETERS = ['limit', 'offset', 'page', 'includes'];
 
   /**
    * Removes any invalid parameters.
@@ -37,6 +37,16 @@ class Request {
   public static function prepareParameters(array $params) {
     $query = http_build_query($params);
     return $query;
+  }
+
+  /**
+   * Prepares the POST data.
+   *
+   * @param array $params
+   * @return array
+   */
+  public static function preparePostData(array $params) {
+    return $params;
   }
 
 }

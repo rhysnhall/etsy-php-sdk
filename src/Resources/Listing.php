@@ -4,6 +4,8 @@ namespace Etsy\Resources;
 
 use Etsy\{Resource, Etsy};
 
-class User extends Resource {
+class Listing extends Resource {
+
+  
 
 }
