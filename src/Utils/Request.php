@@ -9,7 +9,7 @@ namespace Etsy\Utils;
  */
 class Request {
 
-  const ALLOWED_PARAMETERS = ['limit', 'offset', 'page', 'includes', 'min_created ', 'max_created', 'sort_order'];
+  const ALLOWED_PARAMETERS = ['limit', 'offset', 'page', 'includes', 'min_created', 'max_created', 'sort_order'];
 
   /**
    * Removes any invalid parameters.
@@ -32,7 +32,7 @@ class Request {
    * Prepares the request query parameters.
    *
    * @param array $params
-   * @return array
+   * @return string
    */
   public static function prepareParameters(array $params) {
     $query = http_build_query($params);
@@ -66,6 +66,21 @@ class Request {
         'contents' => fopen($params[$type], 'r')
       ]
     ];
+  }
+
+  /**
+   * Returns a query string as an array.
+   *
+   * @param string $query
+   * @return array
+   */
+  public static function getParamaters($query) {
+    $params = [];
+    foreach(explode('&', $query) as $param) {
+      @list($key, $value) = explode('=', $param);
+      $params[$key] = $value;
+    }
+    return $params;
   }
 
 }

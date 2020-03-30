@@ -14,7 +14,7 @@ class Shop extends Resource {
   public function getShopSection($shop_section_id) {
     $response = Etsy::makeRequest(
       'GET',
-      "shops/{$this->shop_id}/sections/{$shop_section_id}",
+      "/shops/{$this->shop_id}/sections/{$shop_section_id}",
       [
         'includes' => 'Shop'
       ]

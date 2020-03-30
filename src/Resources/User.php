@@ -48,10 +48,10 @@ class User extends Resource {
   public function getCharges(array $params = []) {
     $response = Etsy::makeRequest(
       "GET",
-      "users/{$this->user_id}/charges",
+      "/users/{$this->user_id}/charges",
       $params
     );
-    return $response;
+    return Etsy::getCollection($response, 'Charge');
   }
 
   /**
@@ -64,7 +64,7 @@ class User extends Resource {
       "GET",
       "users/{$this->user_id}/charges/meta"
     );
-    return (array)$response->results;
+    return $response->results;
   }
 
 

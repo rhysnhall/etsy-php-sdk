@@ -34,11 +34,6 @@ class Resource {
       return $this->$property();
     }
 
-    // If this property is not part of the _properties object and it does exist directly on this object then we want to return it.
-    if(isset($this->$property) && !isset($properties[$find])) {
-      return $this->$property;
-    }
-
     // Return null for any property that is not set.
     if(!isset($properties[$find])) {
       return null;

@@ -17,7 +17,7 @@ use Etsy\Utils\{
  */
 class Etsy {
 
-  const API_URL = 'https://openapi.etsy.com/v2/';
+  const API_URL = 'https://openapi.etsy.com/v2';
 
   /**
    *
@@ -92,16 +92,24 @@ class Etsy {
    *
    * @param object $response
    * @param string $resource
-   * @return array
+   * @return Collection
    */
   public static function getCollection($response, string $resource) {
     if($response == false) {
-      return [];
+      return false;
     }
+    // Create a new collection.
+    $collection = new Collection($resource, $response->url);
     if(!isset($response->results) || empty($response->results)) {
-      return [];
+      return $collection;
     }
-    return static::createCollection($response->results, $resource);
+    $collection->count = $response->count;
+    $collection->next_page = $response->pagination->next_page;
+    $collection->data = static::createCollectionResources(
+      $response->results,
+      $resource
+    );
+    return $collection;
   }
 
   /**
@@ -111,7 +119,7 @@ class Etsy {
    * @param string $resource
    * @return mixed
    */
-  private static function createCollection(array $records, string $resource) {
+  public static function createCollectionResources(array $records, string $resource) {
     $resource = __NAMESPACE__ . "\\Resources\\{$resource}";
     return array_map(function($record) use($resource) {
       return new $resource($record);
@@ -200,6 +208,8 @@ class Etsy {
     }
     try {
       $response = static::$client->request($method, $url, $options);
+      $response = json_decode($response->getBody());
+      $response->url = str_replace(self::API_URL, '', $url);
     }
     catch(BadResponseException $e) {
       $response = $e->getResponse();
@@ -210,7 +220,7 @@ class Etsy {
       }
       throw new \Exception("Request error. Status code: {$status_code}. Error: {$body}.");
     }
-    return json_decode($response->getBody());
+    return $response;
   }
 
   /**
@@ -346,7 +356,7 @@ class Etsy {
       $user_details = static::$server->getUserDetails(static::$token_credentials);
       $user_id = $user_details->uid;
     }
-    $url = "users/{$user_id}";
+    $url = "/users/{$user_id}";
     $response = static::makeRequest('GET', $url);
     return static::getResource($response, 'User');
   }
@@ -369,11 +379,11 @@ class Etsy {
    */
   public function getShop($shop_id = false) {
     if($shop_id) {
-      $url = "shops/{$shop_id}";
+      $url = "/shops/{$shop_id}";
     }
     else {
       $user_id = $this->getUserId();
-      $url = "users/{$user_id}/shops";
+      $url = "/users/{$user_id}/shops";
     }
     $response = static::makeRequest('GET', $url);
     return static::getResource($response, 'Shop');
@@ -386,7 +396,7 @@ class Etsy {
    * @return array(Etsy\Resources\Transaction)
    */
   public function getAllTransactions(array $params = []) {
-    $url = "shops/{$this->getShopId()}/transactions";
+    $url = "/shops/{$this->getShopId()}/transactions";
     $response = static::makeRequest('GET', $url, $params);
     return static::getCollection($response, 'Transaction');
   }
@@ -398,7 +408,7 @@ class Etsy {
    * @param array $params
    */
   public function getTransaction($transaction_id, array $params = []) {
-    $url = "transactions/{$transaction_id}";
+    $url = "/transactions/{$transaction_id}";
     $response = static::makeRequest('GET', $url, $params);
     return static::getResource($response, 'Transaction');
   }
