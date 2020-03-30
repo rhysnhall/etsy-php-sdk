@@ -9,7 +9,7 @@ namespace Etsy\Utils;
  */
 class Request {
 
-  const ALLOWED_PARAMETERS = ['limit', 'offset', 'page', 'includes'];
+  const ALLOWED_PARAMETERS = ['limit', 'offset', 'page', 'includes', 'min_created ', 'max_created', 'sort_order'];
 
   /**
    * Removes any invalid parameters.
@@ -47,6 +47,25 @@ class Request {
    */
   public static function preparePostData(array $params) {
     return $params;
+  }
+
+  /**
+   * Prepares any files in the POST data. Expects a path for files.
+   *
+   * @param array $params
+   * @return array
+   */
+  public static function prepareFile(array $params) {
+    if(!isset($params['image']) && !isset($params['file'])) {
+      return false;
+    }
+    $type = isset($params['image']) ? 'image' : 'file';
+    return [
+      [
+        'name' => $type,
+        'contents' => fopen($params[$type], 'r')
+      ]
+    ];
   }
 
 }

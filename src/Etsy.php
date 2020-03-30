@@ -180,6 +180,9 @@ class Etsy {
         $url .= "?".RequestUtil::prepareParameters($params);
       }
     }
+    if($file = RequestUtil::prepareFile($params)) {
+      $params = [];
+    }
     // Get the request headers.
     $options['headers'] = static::$server->getHeaders(
       static::$token_credentials,
@@ -188,7 +191,12 @@ class Etsy {
       $params
     );
     if(in_array($method, ['POST', 'PUT'])) {
-      $options['form_params'] = RequestUtil::preparePostData($params);
+      if($file) {
+        $options['multipart'] = $file;
+      }
+      else {
+        $options['form_params'] = RequestUtil::preparePostData($params);
+      }
     }
     try {
       $response = static::$client->request($method, $url, $options);
