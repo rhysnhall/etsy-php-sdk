@@ -215,9 +215,7 @@ class Etsy {
       $response = $e->getResponse();
       $body = $response->getBody();
       $status_code = $response->getStatusCode();
-      if($status_code == 404) {
-        return false;
-      }
+      
       throw new \Exception("Request error. Status code: {$status_code}. Error: {$body}.");
     }
     return $response;
