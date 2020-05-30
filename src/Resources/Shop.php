@@ -2,29 +2,159 @@
 
 namespace Etsy\Resources;
 
-use Etsy\{Resource, Etsy};
+use Etsy\Resource;
 
+/**
+ * Shop resource class. Represents a Etsy user's shop.
+ *
+ * @link https://www.etsy.com/developers/documentation/reference/shop
+ * @author Rhys Hall hello@rhyshall.com
+ */
 class Shop extends Resource {
 
-  public function getAllShopSections() {
-    $response = Etsy::makeRequest('GET', "shops/{$this->shop_id}/sections");
-    return Etsy::getCollection($response, 'ShopSection');
+  /**
+   * Get all sections for the shop.
+   *
+   * @param array $includes
+   * @return \Etsy\Collection
+   */
+  public function getSections(array $includes = []) {
+    return $this->request(
+        "GET",
+        "/shops/{$this->shop_id}/sections",
+        "ShopSection",
+        ['includes' => $includes]
+      )
+      ->append(['shop_id' => $this->shop_id]);
   }
 
-  public function getShopSection($shop_section_id) {
-    $response = Etsy::makeRequest(
-      'GET',
-      "/shops/{$this->shop_id}/sections/{$shop_section_id}",
-      [
-        'includes' => 'Shop'
-      ]
-    );
-    return Etsy::getResource($response, 'ShopSection');
+  /**
+   * Get a specific shop section.
+   *
+   * @param integer $section_id
+   * @param array $includes
+   * @return \Etsy\Resources\ShopSection
+   */
+  public function getSection($section_id, array $includes = []) {
+    return $this->request(
+        "GET",
+        "/shops/{$this->shop_id}/sections/{$section_id}",
+        "ShopSection",
+        ['includes' => $includes]
+      )
+      ->append(['shop_id' => $this->shop_id])
+      ->first();
   }
 
-  public function createShopSection($data) {
-    $response = Etsy::makeRequest('POST', "shops/{$this->shop_id}/sections", $data);
-    return Etsy::getResource($response, 'ShopSection');
+  /**
+   * Creates a new shop section.
+   *
+   * @param array $data
+   * @return \Etsy\Resources\ShopSection
+   */
+  public function createSection(array $data) {
+    return $this->request(
+        "POST",
+        "/shops/{$this->shop_id}/sections",
+        "ShopSection",
+        $data
+      )
+      ->append(['shop_id' => $this->shop_id])
+      ->first();
+  }
+
+  /**
+   * Get a specific shop receipt.
+   *
+   * @param int $receipt_id
+   * @param array $params
+   * @return \Etsy\Resources\Receipt
+   */
+  public function getReceipt($receipt_id, array $params = []) {
+    return $this->request(
+        "GET",
+        "/receipts/{$receipt_id}",
+        "Receipt",
+        $params
+      )
+      ->append(['shop_id' => $this->shop_id])
+      ->first();
+  }
+
+  /**
+   * Get all shop receipts. NOTE: Does not return cancelled orders.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getReceipts(array $params = []) {
+    return $this->request(
+        "GET",
+        "/shops/{$this->shop_id}/receipts",
+        "Receipt",
+        $params
+      )
+      ->append(['shop_id' => $this->shop_id]);
+  }
+
+  /**
+   * Get all payments account entries.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getPaymentAccountEntries(array $params = []) {
+    return $this->request(
+        "GET",
+        "/shops/{$this->shop_id}/payment_account/entries",
+        "AccountEntry",
+        $params
+      )
+      ->append(['shop_id' => $this->shop_id]);
+  }
+
+  /**
+   * Get the shop ledger.
+   *
+   * @return \Etsy\Resources\Ledger
+   */
+  public function getLedger() {
+    return $this->request(
+        "GET",
+        "/shops/{$this->shop_id}/ledger",
+        "Ledger"
+      )
+      ->first();
+  }
+
+  /**
+   * Get all item transactions.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getTransactions(array $params = []) {
+    return $this->request(
+        "GET",
+        "/shops/{$this->shop_id}/transactions",
+        "Transaction",
+        $params
+      );
+  }
+
+  /**
+   * Get a specific item transaction.
+   *
+   * @param integer $transaction_id
+   * @return \Etsy\Resources\Transaction
+   */
+  public function getTransaction($transaction_id) {
+    return $this->request(
+        "GET",
+        "/transactions/{$transaction_id}",
+        "Transaction"
+      )
+      ->first();
   }
 
 }

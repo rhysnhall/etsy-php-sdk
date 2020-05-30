@@ -2,10 +2,12 @@
 
 namespace Etsy\Resources;
 
-use Etsy\{Resource, Etsy};
+use Etsy\Resource;
 
-class Charge extends Resource {
-
-
-
-}
+/**
+ * Charge resource class. Represents a charge to an Etsy user's account.
+ *
+ * @link https://www.etsy.com/developers/documentation/reference/billcharge
+ * @author Rhys Hall hello@rhyshall.com
+ */
+class Charge extends Resource {}

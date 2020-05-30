@@ -42,6 +42,11 @@ Etsy::setConfig([
 ]);
 ```
 
+You can get all scopes, but it is generally recommended to only get what you need.
+```php
+\Etsy\Utils\PermissionScopes::ALL_SCOPES
+```
+
 Upon successful authorization, the user will be redirected to your URL along with two query string parameters called **oauth_verifier** and **oauth_token**.
 
 You now only have a small window of time to complete the last step before the verifier expires.
@@ -51,16 +56,19 @@ To complete authorization, you will need to request OAuth token credentials.
 $token_credentials = $etsy->getTokenCredentials($temp_creds, $oauth_token, $oauth_verifier);
 ```
 
-Save these credentials as they will remain valid until the they revoked, and can be reused for the specific user moving forward.
+Save these credentials as they will remain valid until the they are revoked, and can be reused for the specific user moving forward.
 
 The next time you set the Etsy config, include these access credentials to skip the need to repeat the above process.
+The config will also accept optional keys **user_id** and **shop_id**.
 ```php
 Etsy::setConfig([
   'consumer_key' => $consumer_key,
   'consumer_secret' => $consumer_secret,
   'access_key' => $access_key,
-  'access_secret' => $access_secret
+  'access_secret' => $access_secret,
+
+  // Optional
+  'user_id' => $user_id,
+  'shop_id' => $shop_id
 ]);
 ```
-
-### General usage

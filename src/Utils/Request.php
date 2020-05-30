@@ -40,16 +40,6 @@ class Request {
   }
 
   /**
-   * Prepares the POST data.
-   *
-   * @param array $params
-   * @return array
-   */
-  public static function preparePostData(array $params) {
-    return $params;
-  }
-
-  /**
    * Prepares any files in the POST data. Expects a path for files.
    *
    * @param array $params
@@ -79,6 +69,28 @@ class Request {
     foreach(explode('&', $query) as $param) {
       @list($key, $value) = explode('=', $param);
       $params[$key] = $value;
+    }
+    return $params;
+  }
+
+  /**
+   * Formats the includes parameter for Etsy.
+   *
+   * @param array $params
+   * @return array
+   */
+  public static function formatAssociations($params) {
+    if(isset($params['includes'])) {
+      $includes = $params['includes'];
+      if(is_string($includes)) {
+        $includes = explode(',', $includes);
+      }
+      // Ensure first character is uppercase. Etsy associations are case sensitive.
+      $params['includes'] = implode(',',
+        array_map(function($include) {
+          return ucfirst(trim($include));
+        }, $includes)
+      );
     }
     return $params;
   }

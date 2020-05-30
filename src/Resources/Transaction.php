@@ -2,18 +2,25 @@
 
 namespace Etsy\Resources;
 
-use Etsy\{Resource, Etsy};
+use Etsy\Resource;
 
+/**
+ * Transaction resource class. Represents a single item sale on Etsy.
+ *
+ * @link https://www.etsy.com/developers/documentation/reference/transaction
+ * @author Rhys Hall hello@rhyshall.com
+ */
 class Transaction extends Resource {
 
-  public function getBuyer() {
-    $response = Etsy::makeRequest('GET', "/users/{$this->_properties->buyer_user_id}");
-    return Etsy::getResource($response, 'User');
-  }
-
-  public function getSeller() {
-    $response = Etsy::makeRequest('GET', "/users/{$this->_properties->seller_user_id}");
-    return Etsy::getResource($response, 'User');
-  }
+  /**
+   * @var array
+   */
+  protected $_associations = [
+    'Buyer' => 'User',
+    'MainImage' => 'ListingImage',
+    'Listing' => 'Listing',
+    'Seller' => 'User',
+    'Receipt' => 'Receipt'
+  ];
 
 }

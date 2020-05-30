@@ -6,23 +6,23 @@ use Y0lk\OAuth1\Client\Server\Etsy as Server;
 use League\OAuth1\Client\Credentials\TemporaryCredentials;
 use League\OAuth1\Client\Credentials\TokenCredentials;
 use GuzzleHttp\Exception\BadResponseException;
-use Etsy\Exception\{ApiException};
+use Etsy\Exception\{
+  ApiException,
+  RequestException
+};
 use Etsy\Utils\{
   PermissionScopes,
   Request as RequestUtil
 };
 
 /**
- * Etsy client class. Setups the OAuth connection
+ * Etsy client class. Sets up and manages the OAuth connection.
+ *
+ * @author Rhys Hall hello@rhyshall.com
  */
 class Etsy {
 
   const API_URL = 'https://openapi.etsy.com/v2';
-
-  /**
-   *
-   */
-  protected static $instance;
 
   /**
    * @var array
@@ -65,7 +65,7 @@ class Etsy {
       throw new ApiException("Etsy API config must be set.");
     }
     if(!isset($config['consumer_key']) || !isset($config['consumer_secret'])) {
-      throw new ApiException("Consumer credentials missing from config file. Ensure both consumer_key and consumer_secret exist.");
+      throw new ApiException("Consumer credentials missing from config. Ensure both consumer_key and consumer_secret exist.");
     }
     static::$server = new Server([
       'identifier' => $config['consumer_key'],
@@ -75,7 +75,6 @@ class Etsy {
     ]);
     // Create the HTTP client.
     static::$client = static::$server->createHttpClient();
-
     if(isset($config['access_key']) && isset($config['access_secret'])) {
       $this->setTokenCredentials($config['access_key'], $config['access_secret']);
       if(isset($config['user_id'])) {
@@ -95,16 +94,20 @@ class Etsy {
    * @return Collection
    */
   public static function getCollection($response, string $resource) {
-    if($response == false) {
+    if(!$response) {
       return false;
     }
     // Create a new collection.
     $collection = new Collection($resource, $response->url);
+    // Return an empty collection if there are no results.
     if(!isset($response->results) || empty($response->results)) {
       return $collection;
     }
-    $collection->count = $response->count;
-    $collection->next_page = $response->pagination->next_page;
+    if(!empty((array)$response->pagination)) {
+      // Set the next page key.
+      $collection->next_page = $response->pagination->next_page;
+    }
+    // Create an array of resources using the results.
     $collection->data = static::createCollectionResources(
       $response->results,
       $resource
@@ -134,7 +137,7 @@ class Etsy {
    * @return mixed
    */
   public static function getResource($response, string $resource) {
-    if($response == false) {
+    if(!$response) {
       return false;
     }
     if(!isset($response->results) || empty($response->results)) {
@@ -150,7 +153,7 @@ class Etsy {
    * @param string $resource
    * @return mixed
    */
-  private static function createResource(\stdClass $record, string $resource) {
+  public static function createResource(\stdClass $record, string $resource) {
     $resource = __NAMESPACE__ . "\\Resources\\{$resource}";
     return new $resource($record);
   }
@@ -181,13 +184,19 @@ class Etsy {
    */
   public static function makeRequest(string $method, string $url, array $params = []) {
     $url = self::API_URL.$url;
+    // Format the 'includes' paramater.
+    $params = RequestUtil::formatAssociations($params);
+
+    // Prepare a GET request.
     if($method == 'GET') {
+      // Remove invalid parameters.
       $params = RequestUtil::validateParameters($params);
-      // Append the query parameters.
+      // Append the query parameters to the URL.
       if(count($params)) {
         $url .= "?".RequestUtil::prepareParameters($params);
       }
     }
+    // Prepare any files and empty the params variable.
     if($file = RequestUtil::prepareFile($params)) {
       $params = [];
     }
@@ -198,14 +207,22 @@ class Etsy {
       $url,
       $params
     );
+
+    // Prepare a PUT or POST request.
     if(in_array($method, ['POST', 'PUT'])) {
       if($file) {
         $options['multipart'] = $file;
       }
       else {
-        $options['form_params'] = RequestUtil::preparePostData($params);
+        $options['form_params'] = $params;
       }
     }
+
+    // Prepare a DELETE request.
+    if($method == 'DELETE') {
+      $options['query'] = $params;
+    }
+
     try {
       $response = static::$client->request($method, $url, $options);
       $response = json_decode($response->getBody());
@@ -215,10 +232,18 @@ class Etsy {
       $response = $e->getResponse();
       $body = $response->getBody();
       $status_code = $response->getStatusCode();
-      if($status_code == 404) {
-        return false;
+      // Return an empty class if no results are found or access to a particular resource is denied.
+      if(
+        $status_code == 404 ||
+        ($status_code == 403 && $body == 'Access denied (no visible fields)')
+      ) {
+        $response = new \stdClass;
+        $response->url = str_replace(self::API_URL, '', $url);
+        $response->error = "{$body}";
+        $response->code = $status_code;
+        return $response;
       }
-      throw new \Exception("Request error. Status code: {$status_code}. Error: {$body}.");
+      throw new RequestException("Request error. Status code: {$status_code}. Error: {$body}.");
     }
     return $response;
   }
@@ -276,9 +301,11 @@ class Etsy {
    * @param string $code
    * @return League\OAuth1\Client\Credentials\TokenCredentials
    */
-  public function getTokenCredentials(TemporaryCredentials $temp_creds,
+  public function getTokenCredentials(
+    TemporaryCredentials $temp_creds,
     string $identifier,
-    string $code) {
+    string $code
+  ) {
     $credentials = static::$server->getTokenCredentials(
       $temp_creds,
       $identifier,
@@ -329,7 +356,7 @@ class Etsy {
    */
   public function getShopId() {
     if(!isset($this->shop)) {
-      $shop = $this->getShop();
+      $shop = self::getShop();
       return $shop->shop_id;
     }
     return $this->shop->shop_id;
@@ -348,12 +375,13 @@ class Etsy {
   /**
    * Gets the currently authenticated user if no user id is passed in.
    *
-   * @param mixed $user_id Both the user's ID and username are valid.
+   * @param integer|string $user_id Both the user's ID and username are valid.
    * @return \Etsy\Resources\User
    */
   public function getUser($user_id = false) {
     if(!$user_id) {
-      $user_details = static::$server->getUserDetails(static::$token_credentials);
+      $user_details = static::$server
+        ->getUserDetails(static::$token_credentials);
       $user_id = $user_details->uid;
     }
     $url = "/users/{$user_id}";
@@ -364,7 +392,7 @@ class Etsy {
   /**
    * Sets the shop property.
    *
-   * @param \Etsy\Resources\User $user
+   * @param \Etsy\Resources\Shop $shop
    * @return void
    */
   public function setShop($shop) {
@@ -374,43 +402,21 @@ class Etsy {
   /**
    * Gets the currently authenticated user's shop if no user id is passed in.
    *
-   * @param mixed $shop_id Both the shop's ID and name are valid.
+   * @param integer|string $shop_id Both the shop's ID and name are valid.
    * @return \Etsy\Resources\Shop
    */
   public function getShop($shop_id = false) {
     if($shop_id) {
       $url = "/shops/{$shop_id}";
     }
+    // If no shop ID is set then get the first shop belonging to the user.
+    // Note: A user can only have one shop with Etsy.
     else {
-      $user_id = $this->getUserId();
+      $user_id = self::getUserId();
       $url = "/users/{$user_id}/shops";
     }
     $response = static::makeRequest('GET', $url);
     return static::getResource($response, 'Shop');
-  }
-
-  /**
-   * Gets all transactions for the currently authenticated user's shop.
-   *
-   * @param array $params
-   * @return array(Etsy\Resources\Transaction)
-   */
-  public function getAllTransactions(array $params = []) {
-    $url = "/shops/{$this->getShopId()}/transactions";
-    $response = static::makeRequest('GET', $url, $params);
-    return static::getCollection($response, 'Transaction');
-  }
-
-  /**
-   * Gets a single transaction.
-   *
-   * @param integer|string $transaction_id
-   * @param array $params
-   */
-  public function getTransaction($transaction_id, array $params = []) {
-    $url = "/transactions/{$transaction_id}";
-    $response = static::makeRequest('GET', $url, $params);
-    return static::getResource($response, 'Transaction');
   }
 
 }

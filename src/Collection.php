@@ -6,7 +6,7 @@ use Etsy\Etsy;
 use Etsy\Utils\Request as RequestUtil;
 
 /**
- * Holds an array of resources.
+ * Holds a collection of resources.
  *
  * @author Rhys Hall hello@rhyshall.com
  */
@@ -33,9 +33,9 @@ class Collection {
   public $next_page = null;
 
   /**
-   * @var integer
+   * @var array
    */
-  public $count = 0;
+  protected $_append = [];
 
   /**
    * @var array
@@ -45,6 +45,7 @@ class Collection {
   /**
    * Constructor method for the collection.
    *
+   * @param string $resource
    * @param string $url
    * @return void
    */
@@ -56,6 +57,35 @@ class Collection {
       $this->params = RequestUtil::getParamaters($url[1]);
     }
   }
+
+  /**
+   * Returns only the first result. Primarily used for fetching single resources.
+   *
+   * @return Etsy\Resource
+   */
+  public function first() {
+    if(!count($this->data)) {
+      return false;
+    }
+    return $this->data[0];
+  }
+
+  /**
+   * Appends properties to each resource in the collection.
+   *
+   * @param array $data
+   * @return Collection
+   */
+  public function append($data) {
+    array_map(function($resource) use ($data) {
+      foreach($data as $property => $value) {
+        $resource->{$property} = $value;
+      }
+    }, $this->data);
+    $this->append = $data;
+    return $this;
+  }
+
 
   /**
    * Paginate generator provides continued iteration against the Etsy limitations on number of records returned per call.
@@ -85,7 +115,11 @@ class Collection {
       $this->url,
       $this->params
     );
-    return Etsy::getCollection($response, $this->resource);
+    $collection = Etsy::getCollection($response, $this->resource);
+    if(count($this->append)) {
+      $collection->append($this->append);
+    }
+    return $collection;
   }
 
 }

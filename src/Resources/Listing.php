@@ -2,10 +2,12 @@
 
 namespace Etsy\Resources;
 
-use Etsy\{Resource, Etsy};
+use Etsy\Resource;
 
-class Listing extends Resource {
-
-  
-
-}
+/**
+ * Listing resource class. Represents an Etsy listing.
+ *
+ * @link https://www.etsy.com/developers/documentation/reference/listing
+ * @author Rhys Hall hello@rhyshall.com
+ */
+class Listing extends Resource {}

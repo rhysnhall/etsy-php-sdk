@@ -2,33 +2,47 @@
 
 namespace Etsy\Resources;
 
-use Etsy\{Resource, Etsy};
+use Etsy\Resource;
 
+/**
+ * ShopSection resource class. Represents a Etsy shop section.
+ * 
+ * @link https://www.etsy.com/developers/documentation/reference/shopsection
+ * @author Rhys Hall hello@rhyshall.com
+ */
 class ShopSection extends Resource {
 
   /**
    * @var array
    */
-  protected $_assocations = [
-    'Shop' => 'Shop'
+  protected $_associations = [
+    'Shop' => 'Shop',
+    'Listings' => 'Listing',
+    'Translations' => 'ShopSectionTranslation'
   ];
 
-  public function update($data) {
-    $data['includes'] = 'Shop';
-    $response = Etsy::makeRequest(
-      'PUT',
-      "/shops/{$this->shop->shop_id}/sections/{$this->shop_section_id}",
-      $data
-    );
-    return Etsy::getResource($response, 'ShopSection');
+  /**
+   * Updates the shop section.
+   *
+   * @param array $data
+   * @return ShopSection
+   */
+  public function update(array $data) {
+    return $this->updateRequest(
+        "/shops/{$this->shop_id}/sections/{$this->shop_section_id}",
+        $data
+      );
   }
 
+  /**
+   * Deletes the shop section.
+   *
+   * @return boolean
+   */
   public function delete() {
-    $response = Etsy::makeRequest(
-      'DELETE',
-      "/shops/{$this->shop->shop_id}/sections/{$this->shop_section_id}"
+    return $this->deleteRequest(
+      "/shops/{$this->shop_id}/sections/{$this->shop_section_id}"
     );
-    return Etsy::getResource($response, 'ShopSection');
   }
 
 }
