@@ -419,4 +419,42 @@ class Etsy {
     return static::getResource($response, 'Shop');
   }
 
+  /**
+   * Gets all countries.
+   *
+   * @return \Etsy\Collection
+   */
+  public function getCountries() {
+    $response = static::makeRequest('GET', '/countries');
+    return static::getCollection($response, 'Country');
+  }
+
+  /**
+   * Searches for a country. Will search by country ID if $reference is an integer or ISO code if $reference is a string
+   *
+   * @param string|integer $reference
+   * @return \Etsy\Resources\Country
+   */
+  public function getCountry($reference) {
+    $response = static::makeRequest(
+        'GET',
+        '/countries/'. (is_string($reference) ? 'iso/' : '') .$reference
+      );
+    return static::getResource($response, 'Country');
+  }
+
+  /**
+   * Gets the available image types.
+   *
+   * @return \Etsy\Collection
+   */
+  public function getImageTypes() {
+    $response = static::makeRequest(
+        'GET',
+        '/image_types'
+      );
+    return static::getCollection($response, 'ImageType');
+  }
+
+
 }

@@ -6,7 +6,7 @@ use Etsy\Resource;
 
 /**
  * Cart resource class. Represents an Etsy user's cart.
- * 
+ *
  * @link https://www.etsy.com/developers/documentation/reference/cart
  * @author Rhys Hall hello@rhyshall.com
  */
@@ -18,7 +18,8 @@ class Cart extends Resource {
   protected $_associations = [
     'Shop' => 'Shop',
     'Listings' => 'Listing',
-    'ShippingOptions' => 'ShippingOption'
+    'ShippingOptions' => 'ShippingOption',
+    'items' => 'CartItem'
   ];
 
   /**

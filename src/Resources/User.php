@@ -154,7 +154,7 @@ class User extends Resource {
    *
    * @param integer $listing_id
    * @param integer $customization_id
-   * @param \Etsy\Resources\Cart
+   * @return \Etsy\Resources\Cart
    */
   public function removeFromCart($listing_id, $customization_id = 0) {
     $data = [
@@ -169,6 +169,158 @@ class User extends Resource {
       )
       ->append(['user_id' => $this->user_id])
       ->first();
+  }
+
+  /**
+   * Get all listings favorited by the user.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getFavoriteListings(array $params = []) {
+    $params['includes'] = ['Listing'];
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/favorites/listings",
+        "FavoriteListing",
+        $params
+      );
+  }
+
+  /**
+   * Finds a favorite listing for the user.
+   *
+   * @param integer $listing_id
+   * @return \Etsy\Resources\FavoriteListing
+   */
+  public function getFavoriteListing($listing_id) {
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/favorites/listings/{$listing_id}",
+        "FavoriteListing",
+        ['includes' => 'Listing']
+      )
+      ->first();
+  }
+
+  /**
+   * Adds a new listing to the users favorited listings.
+   *
+   * @param integer $listing_id
+   * @return \Etsy\Resources\FavoriteListing
+   */
+  public function addFavoriteListing($listing_id) {
+    return $this->request(
+        "POST",
+        "/users/{$this->user_id}/favorites/listings/{$listing_id}",
+        "FavoriteListing",
+        ['includes' => 'Listing']
+      )
+      ->first();
+  }
+
+  /**
+   * Removes a listing from the users favorited listings.
+   *
+   * @param integer $listing_id
+   * @return boolean
+   */
+  public function removeFavoriteListing($listing_id) {
+    return $this->deleteRequest(
+      "/users/{$this->user_id}/favorites/listings/{$listing_id}"
+    );
+  }
+
+  /**
+   * Gets all of the users admirers.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getAdmirers(array $params = []) {
+    $params['includes'] = ['User'];
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/favored-by",
+        "FavoriteUser",
+        $params
+      );
+  }
+
+  /**
+   * Gets all users favorited by this user.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getFavoriteUsers(array $params = []) {
+    $params['includes'] = ['TargetUser'];
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/favorites/users",
+        "FavoriteUser",
+        $params
+      );
+  }
+
+  /**
+   * Gets a favorited user.
+   *
+   * @param integer/string $target_user_id
+   * @return \Etsy\Resources\FavoriteUser
+   */
+  public function getFavoriteUser($target_user_id) {
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/favorites/users/{$target_user_id}",
+        "FavoriteUser",
+        ['includes' => "TargetUser"]
+      )
+      ->first();
+  }
+
+  /**
+   * Favorites a new user.
+   *
+   * @param integer/string $target_user_id
+   * @return \Etsy\Resources\FavoriteUser
+   */
+  public function addFavoriteUser($target_user_id) {
+    return $this->request(
+        "POST",
+        "/users/{$this->user_id}/favorites/users/{$target_user_id}",
+        "FavoriteUser",
+        ['includes' => 'TargetUser']
+      )
+      ->first();
+  }
+
+  /**
+   * Removes a favorited user.
+   *
+   * @param integer/string $target_user_id
+   * @return boolean
+   */
+  public function removeFavoriteUser($target_user_id) {
+    return $this->deleteRequest(
+      "/users/{$this->user_id}/favorites/users/{$target_user_id}"
+    );
+  }
+
+  /**
+   * Gets all feedback authored by the user.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getAuthoredFeedback(array $params = []) {
+    $params['includes'] = ['Listing'];
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/feedback/as-author",
+        "Feedback",
+        $params
+      );
   }
 
 

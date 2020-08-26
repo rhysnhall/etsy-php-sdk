@@ -13,6 +13,20 @@ use Etsy\Resource;
 class Shop extends Resource {
 
   /**
+   * @var array
+   */
+  protected $_associations = [
+    'User' => 'User',
+    'About' => 'ShopAbout',
+    'Sections' => 'ShopSection',
+    'Listings' => 'Listing',
+    'Receipts' => 'Receipt',
+    'Transactions' => 'Transaction',
+    'Translations' => 'ShopTranslation',
+    'StructuredPolicies' => 'ShopPolicies'
+  ];
+
+  /**
    * Get all sections for the shop.
    *
    * @param array $includes
@@ -155,6 +169,22 @@ class Shop extends Resource {
         "Transaction"
       )
       ->first();
+  }
+
+  /**
+   * Gets feedback for the store.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getFeedback(array $params = []) {
+    $params['includes'] = ['Listing'];
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/feedback/from-buyers",
+        "Feedback",
+        $params
+      );
   }
 
 }
