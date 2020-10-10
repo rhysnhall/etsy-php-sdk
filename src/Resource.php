@@ -190,4 +190,37 @@ class Resource {
     return Etsy::getCollection($response, $resource);
   }
 
+  /**
+   * Returns the Resources properties as a JSON encoded object.
+   *
+   * @return string
+   */
+  public function toJson() {
+    return json_encode($this->toArray());
+  }
+
+  /**
+   * Returns the Resources properties as an array.
+   *
+   * @return array
+   */
+  public function toArray() {
+    $array = [];
+    $properties = get_object_vars($this)['_properties'];
+    foreach($properties as $property => $value) {
+      if(is_object($value)) {
+        if($value instanceof Resource) {
+          $array[$property] = $value->toArray();
+        }
+        else {
+          $array[$property] = get_object_vars($value);
+        }
+      }
+      else {
+        $array[$property] = $value;
+      }
+    }
+    return $array;
+  }
+
 }

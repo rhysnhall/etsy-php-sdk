@@ -82,13 +82,15 @@ class Collection {
         $resource->{$property} = $value;
       }
     }, $this->data);
-    $this->append = $data;
+    $this->_append = $data;
     return $this;
   }
 
 
   /**
    * Paginate generator provides continued iteration against the Etsy limitations on number of records returned per call.
+   *
+   * @return void
    */
   public function paginate() {
     $page = $this;
@@ -116,10 +118,21 @@ class Collection {
       $this->params
     );
     $collection = Etsy::getCollection($response, $this->resource);
-    if(count($this->append)) {
-      $collection->append($this->append);
+    if(count($this->_append)) {
+      $collection->append($this->_append);
     }
     return $collection;
+  }
+
+  /**
+   * Returns the collections resources as an array of JSON strings.
+   *
+   * @return array
+   */
+  public function toJson() {
+    return array_map(function($resource) {
+      return $resource->toJson();
+    }, $this->data);
   }
 
 }

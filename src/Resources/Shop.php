@@ -2,7 +2,7 @@
 
 namespace Etsy\Resources;
 
-use Etsy\Resource;
+use Etsy\{Resource, Etsy};
 
 /**
  * Shop resource class. Represents a Etsy user's shop.
@@ -22,9 +22,48 @@ class Shop extends Resource {
     'Listings' => 'Listing',
     'Receipts' => 'Receipt',
     'Transactions' => 'Transaction',
-    'Translations' => 'ShopTranslation',
-    'StructuredPolicies' => 'ShopPolicies'
+    'Translations' => 'ShopTranslation'
   ];
+
+  /**
+   * Update the shop.
+   *
+   * @param array $data
+   * @return \Etsy\Resources\Shop
+   */
+  public function update(array $data) {
+    return $this->updateRequest(
+        "/shops/{$this->shop_id}",
+        $data
+      );
+  }
+
+  /**
+   * Uploads a shop banner.
+   *
+   * @param array $file_path
+   * @return \Etsy\Resources\Shop
+   */
+  public function uploadBanner($file_path) {
+    return $this->updateRequest(
+        "/shops/{$this->shop_id}/appearance/banner",
+        ['image' => $file_path],
+        "POST"
+      );
+  }
+
+  /**
+   * Removes a shop banner.
+   *
+   * @return boolean
+   */
+  public function removeBanner() {
+    return $this->updateRequest(
+        "/shops/{$this->shop_id}/appearance/banner",
+        [],
+        "DELETE"
+      );
+  }
 
   /**
    * Get all sections for the shop.
@@ -178,13 +217,30 @@ class Shop extends Resource {
    * @return \Etsy\Collection
    */
   public function getFeedback(array $params = []) {
-    $params['includes'] = ['Listing'];
+    if(!isset($params['includes'])) {
+      $params['includes'] = ['Listing'];
+    }
     return $this->request(
         "GET",
         "/users/{$this->user_id}/feedback/from-buyers",
         "Feedback",
         $params
       );
+  }
+
+  /**
+   * Gets the shop's 'about' section.
+   *
+   * @return \Etsy\Resources\ShopAbout
+   */
+  public function getAbout() {
+    return $this->request(
+        "GET",
+        "/shops/{$this->shop_id}/about",
+        "ShopAbout",
+        ['includes' => 'Images,Members,Videos']
+      )
+      ->first();
   }
 
 }

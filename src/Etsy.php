@@ -55,7 +55,7 @@ class Etsy {
   protected $user;
 
   /**
-   * Client constructor method.
+   * Etsy client constructor method.
    *
    * @return void
    */
@@ -87,7 +87,7 @@ class Etsy {
   }
 
   /**
-   * Returns an array of resource objects from the request result.
+   * Returns an Etsy collection.
    *
    * @param object $response
    * @param string $resource
@@ -420,6 +420,21 @@ class Etsy {
   }
 
   /**
+   * Get all shops. Use the keyword parameter to search by shop name.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getShops(array $params = []) {
+    $response = static::makeRequest(
+        'GET',
+        '/shops',
+        $params
+      );
+    return static::getCollection($response, 'Shop');
+  }
+
+  /**
    * Gets all countries.
    *
    * @return \Etsy\Collection
@@ -454,6 +469,45 @@ class Etsy {
         '/image_types'
       );
     return static::getCollection($response, 'ImageType');
+  }
+
+  /**
+   * Gets all suggested styles.
+   *
+   * @return \Etsy\Collection
+   */
+  public function getSuggestedStyles() {
+    $response = static::makeRequest(
+        'GET',
+        '/taxonomy/styles'
+      );
+    return static::getCollection($response, 'SuggestedStyle');
+  }
+
+  /**
+   * Gets all of the Etsy buyer search taxonomy.
+   *
+   * @return \Etsy\Collection
+   */
+  public function getBuyerTaxonomy() {
+    $response = static::makeRequest(
+        'GET',
+        '/taxonomy/buyer/get'
+      );
+    return static::getCollection($response, 'Taxonomy');
+  }
+
+  /**
+   * Gets all of the Etsy buyer search taxonomy.
+   *
+   * @return \Etsy\Collection
+   */
+  public function getSellerTaxonomy() {
+    $response = static::makeRequest(
+        'GET',
+        '/taxonomy/seller/get'
+      );
+    return static::getCollection($response, 'Taxonomy');
   }
 
 

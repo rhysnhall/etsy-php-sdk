@@ -9,7 +9,7 @@ namespace Etsy\Utils;
  */
 class Request {
 
-  const ALLOWED_PARAMETERS = ['limit', 'offset', 'page', 'includes', 'min_created', 'max_created', 'sort_order'];
+  const ALLOWED_PARAMETERS = ['limit', 'offset', 'page', 'includes', 'min_created', 'max_created', 'sort_order', 'shop_name'];
 
   /**
    * Removes any invalid parameters.
@@ -85,12 +85,22 @@ class Request {
       if(is_string($includes)) {
         $includes = explode(',', $includes);
       }
+
+      $ucfirst = function($string) {
+        return ucfirst(trim($string));
+      };
       // Ensure first character is uppercase. Etsy associations are case sensitive.
-      $params['includes'] = implode(',',
-        array_map(function($include) {
-          return ucfirst(trim($include));
-        }, $includes)
+      $includes = implode(',',
+        array_map($ucfirst, $includes)
       );
+      // If using dot notation for nesting replace dots with forward slash and ensure the first character of each nested association is uppercase.
+      $includes = str_replace('.', '/', $includes);
+      $includes = implode('/',
+        array_map($ucfirst, explode('/', $includes))
+      );
+
+      // This prevents issues on paginated queries without having to target the includes param outside of this method. No sane API would use commas in a url.
+      $params['includes'] = str_replace(['%252C', '%2C'], ',', $includes);
     }
     return $params;
   }

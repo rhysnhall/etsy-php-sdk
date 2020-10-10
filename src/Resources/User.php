@@ -13,6 +13,17 @@ use Etsy\{Resource, Etsy};
 class User extends Resource {
 
   /**
+   * @var array
+   */
+  protected $_associations = [
+    'Shops' => 'Shop',
+    'Profile' => 'Profile',
+    'BuyerReceipts' => 'Receipt',
+    'BuyerTransactions' => 'Transaction',
+    'Addresses' => 'Address'
+  ];
+
+  /**
    * Gets the source path for the avatar image.
    *
    * @return string
@@ -37,6 +48,20 @@ class User extends Resource {
       "/users/{$this->user_id}/avatar",
       $data
     );
+  }
+
+  /**
+   * Gets the users public profile.
+   *
+   * @return Etsy\Resources\Profile
+   */
+  public function getProfile() {
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/profile",
+        "Profile"
+      )
+      ->first();
   }
 
   /**

@@ -5,7 +5,8 @@
   "keywords": [
     "etsy",
     "php",
-    "api"
+    "api",
+    "sdk"
   ],
   "license": "MIT",
   "authors": [
