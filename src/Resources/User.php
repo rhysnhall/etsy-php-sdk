@@ -3,6 +3,8 @@
 namespace Etsy\Resources;
 
 use Etsy\{Resource, Etsy};
+use Etsy\Utils\Address as AddressUtil;
+use Etsy\Exception\SdkException;
 
 /**
  * User resource class. Represents an Etsy User.
@@ -348,5 +350,125 @@ class User extends Resource {
       );
   }
 
+  /**
+   * Gets all followers for the user.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getFollowers(array $params = []) {
+    $params['includes'] = ['Shops', 'Profile'];
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/circles",
+        "User",
+        $params
+      );
+  }
+
+  /**
+   * Get all users this user is following.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getFollowing(array $params = []) {
+    $params['includes'] = ['Shops', 'Profile'];
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/connected_users",
+        "User",
+        $params
+      );
+  }
+
+  /**
+   * Follows an Etsy user.
+   * @NOTE Etsy will return a 400 if you already follow the user. This is
+   * terrible use of the 400 HTTP code and unfortunately not something I am
+   * adding a work around for. Check if the user is already followed before
+   * making this call.
+   *
+   * @param integer/string $target_user_id
+   * @return \Etsy\Resources\User
+   */
+  public function followUser($target_user_id) {
+    return $this->request(
+        "POST",
+        "/users/{$this->user_id}/connected_users",
+        "User",
+        ['to_user_id' => $target_user_id, 'includes' => ['Shops', 'Profile']]
+      )
+      ->first();
+  }
+
+  /**
+  * @NOTE Etsy will return a 400 if you are not following the user. This is
+  * terrible use of the 400 HTTP code and unfortunately not something I am
+  * adding a work around for. Check if the user is currently followed before
+  * making this call.
+   *
+   * @param integer/string $target_user_id
+   * @return boolean
+   */
+  public function unfollowUser($target_user_id) {
+    return $this->deleteRequest(
+      "/users/{$this->user_id}/circles/{$target_user_id}"
+    );
+  }
+
+  /**
+   * Get all addresses for this user.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getAddresses(array $params = []) {
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/addresses",
+        "UserAddress",
+        $params
+      );
+  }
+
+  /**
+   * Gets a single address for this user.
+   *
+   * @param integer/string $address_id
+   * @return \Etsy\Resources\UserAddress
+   */
+  public function getAddress($address_id) {
+    return $this->request(
+        "GET",
+        "/users/{$this->user_id}/addresses/{$address_id}",
+        "UserAddress"
+      )
+      ->first();
+  }
+
+  /**
+   * Creates a new user address.
+   *
+   * @param array $data
+   * @return \Etsy\Resources\UserAddress
+   */
+  public function createUserAddress(array $data) {
+    /**
+     * The Etsy API documentation specifically states that if the country is US, Canada, or Australia then the state value must be a valid abbreviation. It appears that they do not enforce this though and allow you to create a new address with any value in the state field. The below check will ensure the state field is correct. The API will return an error if the state is absent and so we won't validate the states existence. 
+     */
+    if(isset($data['country_id']) && in_array($data['country_id'], array_keys(AddressUtil::VALID_STATES))) {
+      if(isset($data['state'])) {
+        AddressUtil::validateState($data['country_id'], $data['state']);
+      }
+    }
+    return $this->request(
+        "POST",
+        "/users/{$this->user_id}/addresses",
+        "userAddress",
+        $data
+      )
+      ->first();
+  }
 
 }
