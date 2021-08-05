@@ -9,25 +9,6 @@ namespace Etsy\Utils;
  */
 class Request {
 
-  const ALLOWED_PARAMETERS = ['limit', 'offset', 'page', 'includes', 'min_created', 'max_created', 'sort_order', 'shop_name'];
-
-  /**
-   * Removes any invalid parameters.
-   *
-   * @param array $params
-   * @return array
-   */
-  public static function validateParameters(array $params) {
-    $allowed = self::ALLOWED_PARAMETERS;
-    $prepared = [];
-    foreach($params as $key => $value) {
-      if(in_array($key, $allowed)) {
-        $prepared[$key] = $value;
-      }
-    }
-    return $prepared;
-  }
-
   /**
    * Prepares the request query parameters.
    *
@@ -68,39 +49,9 @@ class Request {
     $params = [];
     foreach(explode('&', $query) as $param) {
       @list($key, $value) = explode('=', $param);
-      $params[$key] = $value;
-    }
-    return $params;
-  }
-
-  /**
-   * Formats the includes parameter for Etsy.
-   *
-   * @param array $params
-   * @return array
-   */
-  public static function formatAssociations($params) {
-    if(isset($params['includes'])) {
-      $includes = $params['includes'];
-      if(is_string($includes)) {
-        $includes = explode(',', $includes);
+      if(strlen(trim($key))) {
+        $params[$key] = $value;
       }
-
-      $ucfirst = function($string) {
-        return ucfirst(trim($string));
-      };
-      // Ensure first character is uppercase. Etsy associations are case sensitive.
-      $includes = implode(',',
-        array_map($ucfirst, $includes)
-      );
-      // If using dot notation for nesting replace dots with forward slash and ensure the first character of each nested association is uppercase.
-      $includes = str_replace('.', '/', $includes);
-      $includes = implode('/',
-        array_map($ucfirst, explode('/', $includes))
-      );
-
-      // This prevents issues on paginated queries without having to target the includes param outside of this method. No sane API would use commas in a url.
-      $params['includes'] = str_replace(['%252C', '%2C'], ',', $includes);
     }
     return $params;
   }

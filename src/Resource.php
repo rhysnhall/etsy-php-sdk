@@ -138,8 +138,7 @@ class Resource {
         $url,
         basename(get_class($this)),
         $data
-      )
-      ->first();
+      );
     // Update the existing properties.
     $properties = get_object_vars($result)['_properties'];
     foreach($properties as $property => $value) {
@@ -159,8 +158,7 @@ class Resource {
    * @return boolean
    */
   protected function deleteRequest(string $url, array $data = []) {
-    $response = \Etsy\Etsy::makeRequest(
-        "DELETE",
+    $response = Etsy::$client->delete(
         $url,
         $data
       );
@@ -182,12 +180,11 @@ class Resource {
     string $resource,
     array $params = []
   ) {
-    $response = Etsy::makeRequest(
-      $method,
+    $response = Etsy::$client->{strtolower($method)}(
       $url,
       $params
     );
-    return Etsy::getCollection($response, $resource);
+    return Etsy::getResource($response, $resource);
   }
 
   /**

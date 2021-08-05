@@ -10,7 +10,7 @@ namespace Etsy\Utils;
 class PermissionScopes {
 
   const ALL_SCOPES = [
-    'email_r', 'listings_r', 'listings_w', 'listings_d', 'transactions_r', 'transactions_w', 'billing_r', 'profile_r', 'profile_w', 'address_r', 'address_w', 'favorites_rw', 'shops_rw', 'cart_rw', 'recommend_rw', 'feedback_r'
+    "address_r", "address_w", "billing_r", "cart_r", "cart_w", "email_r", "favorites_r", "favorites_w", "feedback_r", "listings_d", "listings_r", "listings_w", "profile_r", "profile_w", "recommend_r", "recommend_w", "shops_r", "shops_w", "transactions_r", "transactions_w"
   ];
 
   /**

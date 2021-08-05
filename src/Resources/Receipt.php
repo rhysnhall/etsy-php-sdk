@@ -5,9 +5,9 @@ namespace Etsy\Resources;
 use Etsy\Resource;
 
 /**
- * Receipt resource class. Represents an Etsy Shop_Receipt2.
+ * Receipt resource class.
  *
- * @link https://www.etsy.com/developers/documentation/reference/receipt
+ * @link https://developers.etsy.com/documentation/reference#tag/Shop-Receipt
  * @author Rhys Hall hello@rhyshall.com
  */
 class Receipt extends Resource {
@@ -16,26 +16,54 @@ class Receipt extends Resource {
    * @var array
    */
   protected $_associations = [
-    'Country' => 'Country',
-    'Buyer' => 'User',
-    'GuestBuyer' => 'Guest',
-    'Seller' => 'User',
-    'Transactions' => 'Transaction',
-    'Listings' => 'Listing'
+    'shipments' => 'Shipment'
   ];
 
   /**
-   * Get the payment for this receipt.
+   * Creates a new Shipment against the receipt.
    *
-   * @return \Etsy\Resources\Payment
+   * @link https://developers.etsy.com/documentation/reference#operation/createReceiptShipment
+   * @param array $data
+   * @return Etsy\Resources\Shipment
    */
-  public function getPayment() {
+  public function createShipment(array $data) {
+    $shipment = $this->request(
+      "POST",
+      "/application/shops/{$this->shop_id}/receipts/{$this->receipt_id}/tracking",
+      "Shipment",
+      $data
+    );
+    // Add the shipment to the associated property.
+    $this->shipments[] = $shipment;
+    return $shipment;
+  }
+
+  /**
+   * Gets all transactions for the receipt.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/getShopReceiptTransactionsByReceipt
+   * @return Etsy\Collection[Etsy\Resources\Transaction]
+   */
+  public function getTransactions() {
     return $this->request(
-        "GET",
-        "/shops/{$this->shop_id}/receipts/{$this->receipt_id}/payments",
-        "Payment"
-      )
-      ->first();
+      "GET",
+      "/application/shops/{$this->shop_id}/receipts/{$this->receipt_id}/transactions",
+      "Transaction"
+    );
+  }
+
+  /**
+   * Gets all payments for the receipt.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/getShopPaymentByReceiptId
+   * @return Etsy\Collection[Etsy\Resources\Payment]
+   */
+  public function getPayments() {
+    return $this->request(
+      "GET",
+      "/application/shops/{$this->shop_id}/receipts/{$this->receipt_id}/payments",
+      "Payment"
+    );
   }
 
 }

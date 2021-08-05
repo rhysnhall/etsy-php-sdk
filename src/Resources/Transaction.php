@@ -7,20 +7,7 @@ use Etsy\Resource;
 /**
  * Transaction resource class. Represents a single item sale on Etsy.
  *
- * @link https://www.etsy.com/developers/documentation/reference/transaction
+ * @link https://developers.etsy.com/documentation/reference#tag/Shop-Receipt-Transactions
  * @author Rhys Hall hello@rhyshall.com
  */
-class Transaction extends Resource {
-
-  /**
-   * @var array
-   */
-  protected $_associations = [
-    'Buyer' => 'User',
-    'MainImage' => 'ListingImage',
-    'Listing' => 'Listing',
-    'Seller' => 'User',
-    'Receipt' => 'Receipt'
-  ];
-
-}
+class Transaction extends Resource {}
