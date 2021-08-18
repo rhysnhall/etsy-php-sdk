@@ -165,8 +165,8 @@ class Client {
       $response = $client->post(self::TOKEN_URL, ['form_params' => $params]);
       $response = json_decode($response->getBody(), false);
       return [
-        'access_token' => $response->access_token,
-        'refresh_token' => $response->refresh_token
+        $response->access_token,
+        $response->refresh_token
       ];
     }
     catch(\Exception $e) {
@@ -194,8 +194,8 @@ class Client {
       $response = $client->post(self::TOKEN_URL, ['form_params' => $params]);
       $response = json_decode($response->getBody(), false);
       return [
-        'access_token' => $response->access_token,
-        'refresh_token' => $response->refresh_token
+        $response->access_token,
+        $response->refresh_token
       ];
     }
     catch(\Exception $e) {
