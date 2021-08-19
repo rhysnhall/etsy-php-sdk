@@ -14,7 +14,7 @@ use Etsy\Exception\SdkException;
 class Collection {
 
   const PAGINATION_SUPPORT = [
-    "Shop", "Review"
+    "Shop", "Review", "Listing"
   ];
 
   /**

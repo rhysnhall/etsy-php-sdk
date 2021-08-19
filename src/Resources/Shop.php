@@ -38,7 +38,8 @@ class Shop extends Resource {
       "/application/shops/{$this->shop_id}/sections",
       "ShopSection",
       $params
-    );
+    )
+      ->append(['shop_id' => $this->shop_id]);
   }
 
   /**
@@ -48,11 +49,15 @@ class Shop extends Resource {
    * @return \Etsy\Resources\ShopSection
    */
   public function getSection($section_id) {
-    return $this->request(
+    $section = $this->request(
       "GET",
       "/application/shops/{$this->shop_id}/sections/{$section_id}",
       "ShopSection"
     );
+    if($section) {
+      $section->shop_id = $this->shop_id;
+    }
+    return $section;
   }
 
   /**
@@ -286,7 +291,7 @@ class Shop extends Resource {
   }
 
   /**
-   * Get the listings for the shop.
+   * Get the listings for the shop. This method should be used when querying listings for your own shop.
    *
    * @link https://developers.etsy.com/documentation/reference#operation/getListingsByShop
    * @param array $params
@@ -296,6 +301,40 @@ class Shop extends Resource {
     $listings = $this->request(
       "GET",
       "/application/shops/{$this->shop_id}/listings",
+      "Listing",
+      $params
+    );
+    return $listings;
+  }
+
+  /**
+   * Get all active listings for a public shop. Use this method when querying listings for a public shop.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/findAllActiveListingsByShop
+   * @param array $params
+   * @return Etsy\Collection[Etsy\Resources\Listing]
+   */
+  public function getPublicListings(array $params = []) {
+    $listings = $this->request(
+      "GET",
+      "/application/shops/{$this->shop_id}/listings/active",
+      "Listing",
+      $params
+    );
+    return $listings;
+  }
+
+  /**
+   * Get the featured listings for the shop.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/getFeaturedListingsByShop
+   * @param array $params
+   * @return Etsy\Collection[Etsy\Resources\Listing]
+   */
+  public function getFeaturedListings(array $params = []) {
+    $listings = $this->request(
+      "GET",
+      "/application/shops/{$this->shop_id}/listings/featured",
       "Listing",
       $params
     );

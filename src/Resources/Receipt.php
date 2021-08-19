@@ -66,4 +66,20 @@ class Receipt extends Resource {
     );
   }
 
+  /**
+   * Get all listings associated with the receipt.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/getListingsByShopReceipt
+   * @param array $params
+   * @return Etsy\Collection[Etsy\Resources\Listing]
+   */
+  public function getListings($params = []) {
+    return $this->request(
+      "GET",
+      "/application/shops/{$this->shop_id}/receipts/{$this->receipt_id}/listings",
+      "Listing",
+      $params
+    );
+  }
+
 }

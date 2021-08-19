@@ -194,11 +194,61 @@ class Etsy {
    *
    * @link https://developers.etsy.com/documentation/reference#operation/getListing
    * @param integer|string $listing_id
+   * @param array $includes
    * @return Etsy\Resources\Listing
    */
-  public function getListing($listing_id) {
+  public function getListing(
+    $listing_id,
+    array $include = []
+  ) {
     $response = static::$client->get(
-      "/application/listings/{$listing_id}"
+      "/application/listings/{$listing_id}",
+      [
+        'includes' => $includes
+      ]
+    );
+    return static::getResource($response, "Listing");
+  }
+
+  /**
+   * Gets all public listings on Etsy. Filter with keyword param.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/findAllListingsActive
+   * @param array $params
+   * @return Etsy\Collection[Etsy\Resources\Listing]
+   */
+  public function getPublicListings(array $params = []) {
+    $response = static::$client->get(
+      "/application/listings/active",
+      $params
+    );
+    return static::getResource($response, "Listing");
+  }
+
+  /**
+   * Get the specified Etsy listings. Supports a maximum of 100 listing IDs.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/getListingsByListingIds
+   * @param array $listing_ids
+   * @param array $includes
+   * @return Etsy\Collection[Etsy\Resources\Listing]
+   */
+  public function getListings(
+    array $listing_ids,
+    array $includes = []
+  ) {
+    if(!count($listing_ids)) {
+      throw new ApiException("At least one listing ID is required.");
+    }
+    else if(count($listing_ids) > 100) {
+      throw new ApiException("Request exceeds the 100 listing ID maximum.");
+    }
+    $response = static::$client->get(
+      "/application/listings/batch",
+      [
+        "listing_ids" => $listing_ids,
+        "includes" => $includes
+      ]
     );
     return static::getResource($response, "Listing");
   }

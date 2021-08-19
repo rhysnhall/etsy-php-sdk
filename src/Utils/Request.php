@@ -46,13 +46,7 @@ class Request {
    * @return array
    */
   public static function getParamaters($query) {
-    $params = [];
-    foreach(explode('&', $query) as $param) {
-      @list($key, $value) = explode('=', $param);
-      if(strlen(trim($key))) {
-        $params[$key] = $value;
-      }
-    }
+    parse_str($query, $params);
     return $params;
   }
 
