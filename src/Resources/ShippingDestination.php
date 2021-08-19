@@ -21,7 +21,7 @@ class ShippingDestination extends Resource {
    */
   public function update(array $data) {
     return $this->updateRequest(
-      "/application/shops/{$this->shop_id}/shipping-profiles/{$this->shipping_profile_id}/destinations{$this->shipping_profile_destination_id}",
+      "/application/shops/{$this->shop_id}/shipping-profiles/{$this->shipping_profile_id}/destinations/{$this->shipping_profile_destination_id}",
       $data
     );
   }
@@ -34,7 +34,7 @@ class ShippingDestination extends Resource {
    */
   public function delete() {
     return $this->deleteRequest(
-      "/application/shops/{$this->shop_id}/shipping-profiles/{$this->shipping_profile_id}/destinations{$this->shipping_profile_destination_id}",
+      "/application/shops/{$this->shop_id}/shipping-profiles/{$this->shipping_profile_id}/destinations/{$this->shipping_profile_destination_id}"
     );
   }
 }

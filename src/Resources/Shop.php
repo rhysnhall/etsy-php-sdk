@@ -268,4 +268,38 @@ class Shop extends Resource {
     );
   }
 
+  /**
+   * Creates a draft Etsy listing.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/createDraftListing
+   * @param array $data
+   * @return Etsy\Resources\Listing
+   */
+  public function createListing(array $data) {
+    $listing = $this->request(
+      "POST",
+      "/application/shops/{$this->shop_id}/listings",
+      "Listing",
+      $data
+    );
+    return $listing;
+  }
+
+  /**
+   * Get the listings for the shop.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/getListingsByShop
+   * @param array $params
+   * @return Etsy\Collection[Etsy\Resources\Listing]
+   */
+  public function getListings(array $params = []) {
+    $listings = $this->request(
+      "GET",
+      "/application/shops/{$this->shop_id}/listings",
+      "Listing",
+      $params
+    );
+    return $listings;
+  }
+
 }

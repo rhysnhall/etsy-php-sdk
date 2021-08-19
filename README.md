@@ -4,7 +4,7 @@ An unofficial PHP SDK for the Etsy API v3.
 This package is still in development. **Listing Management** resources are currently not available.
 
 ## Requirements
-PHP 7.0 or greater.
+PHP 7.1 or greater.
 
 ## Install
 Install the package using composer.
@@ -148,4 +148,4 @@ Help improve this SDK by contributing.
 Before opening a pull request, please first discuss the proposed changes via Github issue or <a href="mailto:hello@rhyshall.com">email</a>.
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/OrbitCSS/orbitcss/blob/master/LICENSE) file for details
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/rhysnhall/etsy-php-sdk/blob/master/LICENSE.md) file for details

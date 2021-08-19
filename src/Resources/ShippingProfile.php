@@ -42,7 +42,7 @@ class ShippingProfile extends Resource {
    */
   public function delete() {
     return $this->deleteRequest(
-      "/application/shops/{$this->shop_id}/shipping-profiles/{$this->shipping_profile_id}",
+      "/application/shops/{$this->shop_id}/shipping-profiles/{$this->shipping_profile_id}"
     );
   }
 

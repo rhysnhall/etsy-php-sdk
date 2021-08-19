@@ -189,4 +189,18 @@ class Etsy {
     return static::getResource($response, "ShippingCarrier");
   }
 
+  /**
+   * Gets an individual listing on Etsy.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/getListing
+   * @param integer|string $listing_id
+   * @return Etsy\Resources\Listing
+   */
+  public function getListing($listing_id) {
+    $response = static::$client->get(
+      "/application/listings/{$listing_id}"
+    );
+    return static::getResource($response, "Listing");
+  }
+
 }
