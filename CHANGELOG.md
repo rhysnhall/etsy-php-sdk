@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.2
+* Add Shop Listing methods
+* Update Request Utility getParamaters method
+
+
 ## v0.1.1
 * Fix update & delete methods for ShippingProfiles
 * Add create draft listing method
