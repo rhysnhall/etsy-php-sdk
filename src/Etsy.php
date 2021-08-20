@@ -199,7 +199,7 @@ class Etsy {
    */
   public function getListing(
     $listing_id,
-    array $include = []
+    array $includes = []
   ) {
     $response = static::$client->get(
       "/application/listings/{$listing_id}",
@@ -237,11 +237,9 @@ class Etsy {
     array $listing_ids,
     array $includes = []
   ) {
-    if(!count($listing_ids)) {
-      throw new ApiException("At least one listing ID is required.");
-    }
-    else if(count($listing_ids) > 100) {
-      throw new ApiException("Request exceeds the 100 listing ID maximum.");
+    if(!count($listing_ids)
+      || count($listing_ids) > 100) {
+      throw new ApiException("Query requires at least one listing ID and cannot exceed a maximum of 100 listing IDs.");
     }
     $response = static::$client->get(
       "/application/listings/batch",

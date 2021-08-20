@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2
+Finalise basics of all methods as per Etsy's API reference.
+
+* Add ListingFile
+* Add ListingImage
+* Add ListingInventory
+* Add ListingOffering
+* Add ListingProduct
+* Add ListingTranslation
+* Add ListingVariationImage
+
 ## v0.1.2
 * Add Shop Listing methods
 * Update Request Utility getParamaters method
