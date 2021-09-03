@@ -1,7 +1,7 @@
 # Etsy PHP SDK
-An unofficial PHP SDK for the Etsy API v3.
+A PHP SDK for the Etsy API v3.
 
-This package is still in development. **Listing Management** resources are currently not available.
+This package is still in development.
 
 ## Requirements
 PHP 7.1 or greater.
