@@ -333,7 +333,7 @@ class Listing extends Resource {
    */
   public function updateVariationImages(array $data) {
     return $this->request(
-      "PUT",
+      "POST",
       "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/variation-images",
       "ListingVariationImage",
       $data
