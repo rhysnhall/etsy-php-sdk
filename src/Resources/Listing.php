@@ -3,6 +3,7 @@
 namespace Etsy\Resources;
 
 use Etsy\Resource;
+use Etsy\Exception\ApiException;
 
 /**
  * Listing resource class. Represents an Etsy listing.

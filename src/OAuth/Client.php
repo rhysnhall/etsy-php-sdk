@@ -80,7 +80,12 @@ class Client {
       $uri .= "?".RequestUtil::prepareParameters($args[1]);
     }
     if(in_array($method, ['post', 'put'])) {
-      $opts['form_params'] = $args[1] ?? [];
+      if($file = RequestUtil::prepareFile($args[1] ?? [])) {
+        $opts['multipart'] = $file;
+      }
+      else {
+        $opts['form_params'] = $args[1] ?? [];
+      }
     }
     if($method == 'DELETE' && count($args[1] ?? [])) {
       $opts['query'] = $args[1];
