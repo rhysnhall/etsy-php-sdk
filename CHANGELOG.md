@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.1
+
+### Fixed issues
+* updateVariationImages() method in Listings resource now correctly uses POST method [#5](https://github.com/rhysnhall/etsy-php-sdk/issues/5)
+* Typo in ShippingUpgrade update and delete methods [#7](https://github.com/rhysnhall/etsy-php-sdk/issues/7)
+* When uploading an image or file the Etsy Client will now POST the data as multipart.
+
 ## v0.2
 Finalise basics of all methods as per Etsy's API reference.
 
