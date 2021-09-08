@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.3.0
+
+### New
+* Added `config` property to the Client class. This currently only support the value '404_error' which when set to true will throw an error when a resource returns 404 instead of returning a null value. This value is unset/false by default.
+
+### Fixed issues
+* Fixed breaking issue with class names in the resource updateRequest method. This issue only relates to Linux environments. [#6] (https://github.com/rhysnhall/etsy-php-sdk/issues/6)
+
+### Minor notes
+* Fixed some typos in Client error messages.
+
 ## v0.2.1
 
 ### Fixed issues

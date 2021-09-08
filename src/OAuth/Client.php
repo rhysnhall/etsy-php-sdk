@@ -35,6 +35,11 @@ class Client {
   protected $request_headers = [];
 
   /**
+   * @var array
+   */
+  protected $config = [];
+
+  /**
    * Create a new instance of Client.
    *
    * @return void
@@ -55,6 +60,16 @@ class Client {
   }
 
   /**
+   * Sets the client config.
+   *
+   * @param array $config
+   * @return void
+   */
+  public function setConfig($config) {
+    $this->config = $config;
+  }
+
+  /**
    * Sets the users API key.
    *
    * @param string $api_key
@@ -69,7 +84,7 @@ class Client {
 
   public function __call($method, $args) {
     if(!count($args)) {
-      throw new RequestException("No URI specified for this request. All requests require a URI and optional optiosn array.");
+      throw new RequestException("No URI specified for this request. All requests require a URI and optional options array.");
     }
     $valid_methods = ['get', 'delete', 'patch', 'post', 'put'];
     if(!in_array($method, $valid_methods)) {
@@ -104,7 +119,7 @@ class Client {
       $response = $e->getResponse();
       $body = json_decode($response->getBody(), false);
       $status_code = $response->getStatusCode();
-      if($status_code == 404) {
+      if($status_code == 404 && !($this->config['404_error'] ?? false)) {
         $response = new \stdClass;
         $response->uri = $uri;
         $response->error = "{$body->error}";

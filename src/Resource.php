@@ -136,7 +136,7 @@ class Resource {
     $result = $this->request(
         $method,
         $url,
-        basename(get_class($this)),
+        basename(str_replace('\\', '/', get_class($this))),
         $data
       );
     // Update the existing properties.
