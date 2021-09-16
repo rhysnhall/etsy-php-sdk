@@ -42,11 +42,15 @@ class Client {
   /**
    * Create a new instance of Client.
    *
+   * @param string $client_id
    * @return void
    */
   public function __construct(
-    $client_id
+    string $client_id
   ) {
+    if(is_null($client_id) || !trim($client_id)) {
+      throw new OAuthException("No client ID found. A valid client ID is required.");
+    }
     $this->client_id = $client_id;
   }
 
@@ -264,8 +268,12 @@ class Client {
     $response = $e->getResponse();
     $body = json_decode($response->getBody(), false);
     $status_code = $response->getStatusCode();
+    $error_msg = "with error \"{$body->error}\"";
+    if($body->error_description ?? false) {
+      $error_msg .= "and message \"{$body->error_description}\"";
+    }
     throw new OAuthException(
-      "Received HTTP status code [$status_code] with error \"{$body->error}\" and message \"{$body->error_description}\" when requesting access token."
+      "Received HTTP status code [$status_code] {$error_msg} when requesting access token."
     );
   }
 

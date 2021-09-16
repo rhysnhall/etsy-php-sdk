@@ -1,12 +1,18 @@
 # Changelog
 
+## v0.3.1
+
+### Fixed issues
+* Add check and exception when a null or empty client ID is passed to the Oauth/Client class. [Issue #8](https://github.com/rhysnhall/etsy-php-sdk/issues/8)
+* Updated handleAcessTokenError() method to check for the existence of 'error_description' in the response body. [Issue #8](https://github.com/rhysnhall/etsy-php-sdk/issues/8)
+
 ## v0.3.0
 
 ### New
-* Added `config` property to the Client class. This currently only support the value '404_error' which when set to true will throw an error when a resource returns 404 instead of returning a null value. This value is unset/false by default.
+* Added `config` property to the Client class. This currently only supports the value '404_error' which when set to true will throw an error when a resource returns 404 instead of returning a null value. This value is unset/false by default.
 
 ### Fixed issues
-* Fixed breaking issue with class names in the resource updateRequest method. This issue only relates to Linux environments. [#6] (https://github.com/rhysnhall/etsy-php-sdk/issues/6)
+* Fixed breaking issue with class names in the resource updateRequest method. This issue only relates to Linux environments. [#6](https://github.com/rhysnhall/etsy-php-sdk/issues/6)
 
 ### Minor notes
 * Fixed some typos in Client error messages.
