@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.2
+### Fixed issues
+* Fixed issue with associated properties being incorrectly updated on create() methods resulting in "Indirect modification of overloaded property" error. [Issue #9](https://github.com/rhysnhall/etsy-php-sdk/issues/9)
+
 ## v0.3.1
 
 ### Fixed issues
