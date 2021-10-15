@@ -34,7 +34,7 @@ class Receipt extends Resource {
       $data
     );
     // Add the shipment to the associated property.
-    $this->shipments[] = $shipment;
+    $this->_properties->shipments[] = $shipment;
     return $shipment;
   }
 

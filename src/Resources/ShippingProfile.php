@@ -63,7 +63,7 @@ class ShippingProfile extends Resource {
     // Add the shop ID property to the destination.
     $destination->shop_id = $this->shop_id;
     // Add the new shipping destination to the associated property.
-    $this->shipping_profile_destinations[] = $destination;
+    $this->_properties->shipping_profile_destinations[] = $destination;
     return $destination;
   }
 
@@ -84,7 +84,7 @@ class ShippingProfile extends Resource {
     // Add the shop ID property to the destination.
     $upgrade->shop_id = $this->shop_id;
     // Add the new shipping upgrade to the associated property.
-    $this->shipping_profile_upgrades[] = $upgrade;
+    $this->_properties->shipping_profile_upgrades[] = $upgrade;
     return $upgrade;
   }
 
