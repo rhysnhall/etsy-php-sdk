@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0
+### Changes
+* Added `$date_from` and `$date_to` params to the `Shop::getLedgerEntries` method. These params expect either a unix timestamp or an instance of DateTime. If left empty or set to false they will default to the past 7 days.
+* Added `linkFile` method to the Listing resource. Removed support for linking a file from the `uploadFile` method.
+* Added `linkImage` method to the Listing resource. Removed support for linking an image from the `uploadImage` method.
+* Added `$file`, `$name` and `$rank` params to the `Listing::uploadFile` method. Removed the `$data` param.
+* Added `$file`, `$name`, `$rank` and `$options` params to the `Listing::uploadImage` method. Removed the `$data` param.
+* Removed the `Listing::updateInventory` method. This has been replaced with `ListingInventory::update`.
+
+### Fixed issues
+* UploadFile request was throwing an exception if 'image' parameter was missing. This check has been removed.
+
 ## v0.3.2
 ### Fixed issues
 * Fixed issue with associated properties being incorrectly updated on create() methods resulting in "Indirect modification of overloaded property" error. [Issue #9](https://github.com/rhysnhall/etsy-php-sdk/issues/9)

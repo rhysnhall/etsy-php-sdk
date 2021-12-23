@@ -3,7 +3,8 @@
 namespace Etsy\Resources;
 
 use Etsy\Resource;
-use Etsy\Exception\ApiException;
+use Etsy\Exception\SdkException;
+use Etsy\Utils\Date;
 
 /**
  * Shop resource class. Represents a Etsy user's shop.
@@ -68,7 +69,7 @@ class Shop extends Resource {
    */
   public function createSection(string $title) {
     if(!strlen(trim($title))) {
-      throw new ApiException("Section title cannot be blank.");
+      throw new SdkException("Section title cannot be blank.");
     }
     return $this->request(
       "POST",
@@ -244,10 +245,30 @@ class Shop extends Resource {
    * Get all payment account ledger entries for the shop.
    *
    * @link https://developers.etsy.com/documentation/reference#tag/Ledger-Entry
+   * @param mixed $date_from
+   * @param mixed $date_to
    * @param array $params
    * @return Etsy\Collection[Etsy\Resources\LedgerEntry]
    */
-  public function getLedgerEntries(array $params = []) {
+  public function getLedgerEntries(
+    $date_from = false,
+    $date_to = false,
+    array $params = []
+  ) {
+    // Default period is 7 days.
+    if(!$date_from && !$date_to) {
+      $date_from = Date::now()->modify('-1 week')->getTimestamp();
+      $date_to = Date::now()->getTimestamp();
+    }
+    if($date_from instanceof \DateTime) {
+      $date_from = $date_from->getTimestamp();
+    }
+    if($date_to instanceof \DateTime) {
+      $date_to = $date_to->getTimestamp();
+    }
+    // We don't validate wether the string is a valid timestamp.
+    $params['min_created'] = $date_from;
+    $params['max_created'] = $date_to;
     return $this->request(
       "GET",
       "/application/shops/{$this->shop_id}/payment-account/ledger-entries",

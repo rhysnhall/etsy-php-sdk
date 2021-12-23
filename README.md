@@ -85,7 +85,7 @@ The final step is to get the access token for the user. To do this you will need
 );
 ```
 
-You'll be provided with both an access token and a refresh token. The access token has a valid duration of 3600 seconds (1 hour). Save both of these for late ruse.
+You'll be provided with both an access token and a refresh token. The access token has a valid duration of 3600 seconds (1 hour). Save both of these for late use.
 
 #### Refreshing your token
 

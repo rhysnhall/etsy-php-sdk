@@ -125,13 +125,46 @@ class Listing extends Resource {
    * Uploads a listing file.
    *
    * @link https://developers.etsy.com/documentation/reference#operation/uploadListingFile
-   * @param array $data
+   * @param resource $file
+   * @param string $name
+   * @param integer|string $rank
    * @return Etsy\Resources\ListingFile
    */
-  public function uploadFile(array $data) {
-    if(!isset($data['image']) && !isset($data['listing_image_id'])) {
-      throw new ApiException("Request requires either 'listing_file_id' or 'file' paramater.");
+  public function uploadFile(
+    $file,
+    string $name,
+    $rank = 1
+  ) {
+    $data = [
+      'file' => $file,
+      'name' => $name,
+      'rank' => $rank
+    ];
+    $listing_file = $this->request(
+      "POST",
+      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/files",
+      "ListingFile",
+      $data
+    );
+    if($listing_file) {
+      $listing_file->shop_id = $this->shop_id;
     }
+    return $listing_file;
+  }
+
+  /**
+   * Links an existing file to the Listing.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/uploadListingFile
+   * @param integer|string $listing_file_id
+   * @param integer|string $rank
+   * @return Etsy\Resources\ListingFile
+   */
+  public function linkFile($listing_file_id, $rank = 1) {
+    $data = [
+      'listing_file_id' => $listing_file_id,
+      'rank' => 1
+    ];
     $listing_file = $this->request(
       "POST",
       "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/files",
@@ -182,13 +215,23 @@ class Listing extends Resource {
    * Upload a listing image.
    *
    * @link https://developers.etsy.com/documentation/reference#operation/uploadListingImage
-   * @param array $data
+   * @param resource $file
+   * @param string $name
+   * @param integer|string $rank
+   * @param array $options
    * @return Etsy\Resources\ListingImage
    */
-  public function uploadImage(array $data) {
-    if(!isset($data['image']) && !isset($data['listing_image_id'])) {
-      throw new ApiException("Request requires either 'listing_image_id' or 'image' paramater.");
-    }
+  public function uploadImage(
+    $file,
+    string $name,
+    $rank = 1,
+    array $options
+  ) {
+    $data = array_merge($options, [
+      'file' => $file,
+      'name' => $name,
+      'rank' => $rank
+    ]);
     $listing_image = $this->request(
       "POST",
       "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/images",
@@ -202,25 +245,33 @@ class Listing extends Resource {
   }
 
   /**
-   * Get the inventory for the listing.
+   * Links an existing image to the Listing.
    *
-   * @link https://developers.etsy.com/documentation/reference#operation/getListingInventory
-   * @return Etsy\Resources\ListingInventory
+   * @link https://developers.etsy.com/documentation/reference#operation/uploadListingImage
+   * @param integer|string $listing_file_id
+   * @param integer|string $rank
+   * @param array $options
    */
-  public function getInventory() {
-    $inventory = $this->request(
-      "GET",
-      "/application/listings/{$this->listing_id}/inventory",
-      "ListingInventory"
+  public function linkImage(
+    $listing_image_id,
+    $rank = 1,
+    array $options = []
+  ) {
+    // Attach the options.
+    $data = array_merge($options, [
+      'listing_image_id' => $listing_image_id,
+      'rank' => $rank
+    ]);
+    $listing_image = $this->request(
+      "POST",
+      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/images",
+      "ListingImage",
+      $data
     );
-    // Assign the listing ID to associated inventory products.
-    array_map(
-      (function($product){
-        $product->listing_id = $this->listing_id;
-      }),
-      ($inventory->products ?? [])
-    );
-    return $inventory;
+    if($listing_image) {
+      $listing_image->shop_id = $this->shop_id;
+    }
+    return $listing_image;
   }
 
   /**
