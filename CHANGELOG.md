@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.4
+### Fixed issues
+* Add pagination support for the Receipt resource. [Issue #15](https://github.com/rhysnhall/etsy-php-sdk/issues/15)
+* Add pagination support for LedgerEntry and Transaction resources.
+
 ## v0.3.3
 ### Fixed issues
 * Corrected update URL for ListingProperty resource. [Issue #14](https://github.com/rhysnhall/etsy-php-sdk/issues/14)
