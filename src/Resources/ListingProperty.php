@@ -21,7 +21,7 @@ class ListingProperty extends Resource {
    */
   public function update(array $data) {
     return $this->updateRequest(
-      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/property/{$this->property_id}",
+      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/properties/{$this->property_id}",
       $data
     );
   }
@@ -34,7 +34,7 @@ class ListingProperty extends Resource {
    */
   public function delete() {
     return $this->deleteRequest(
-      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/property/{$this->property_id}"
+      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/properties/{$this->property_id}"
     );
   }
 }
