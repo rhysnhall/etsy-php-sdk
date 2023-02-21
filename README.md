@@ -9,7 +9,7 @@ PHP 7.1 or greater.
 ## Install
 Install the package using composer.
 ```php
-composer require rhysnhall/etsy-php-sdk
+composer require erankco/etsy-php-sdk
 ```
 
 Include the OAuth client and Etsy class.
