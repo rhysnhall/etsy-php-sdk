@@ -118,15 +118,37 @@ class Etsy {
   }
 
   /**
-   * Only supports getting the user for who the current API KEY is associated with.
+   * Gets the user id and shop id for the logged in user.
+   * 
+   * @return array
+   */
+  public function getMe() {
+    $response = static::$client->get("/application/users/me");
+    return $response ?? [];
+  }
+
+  /**
+   * Gets the scopes for the current token
+   * 
+   * @return array
+   */
+  public function tokenScopes() {
+    $response = static::$client->get("/application/scopes");
+    return $response ?? [];
+  }
+
+  /**
+   * Get the user for the current tokened user or for a specified user.
    *
+   * @params int|null $user_id
    * @return Etsy\Resources\User
    */
-  public function getUser() {
-    $user_id = explode(".", $this->api_key)[0];
+  public function getUser($user_id = null) {
+    $user_id ?? explode(".", $this->api_key)[0];
     $response = static::$client->get("/application/users/{$user_id}");
     return static::getResource($response, "User");
   }
+
 
   /**
    * Gets an Etsy shop. If no shop_id is specified the current user will be queried for an associated shop.
@@ -166,6 +188,7 @@ class Etsy {
   /**
    * Retrieves the full hierarchy tree of seller taxonomy nodes.
    *
+   * @link https://developers.etsy.com/documentation/reference#tag/getSellerTaxonomyNodes
    * @return Etsy\Collection[Etsy\Resources\Taxonomy]
    */
   public function getSellerTaxonomy() {
@@ -173,6 +196,19 @@ class Etsy {
       "/application/seller-taxonomy/nodes"
     );
     return static::getResource($response, "Taxonomy");
+  }
+
+  /**
+   * Retrieves the full hierarchy tree of buyer taxonomy nodes.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/getBuyerTaxonomyNodes
+   * @return Etsy\Collection[Etsy\Resources\BuyerTaxonomy]
+   */
+  public function getBuyerTaxonomy() {
+    $response = static::$client->get(
+      "/application/buyer-taxonomy/nodes"
+    );
+    return static::getResource($response, "BuyerTaxonomy");
   }
 
   /**
@@ -251,6 +287,27 @@ class Etsy {
       ]
     );
     return static::getResource($response, "Listing");
+  }
+
+  /**
+   * Find shops based on a shop name
+   *
+   * @param string $shop_name
+   * @param int|null $limit
+   * @param int|null $offset
+   * @return Etsy\Collection[Etsy\Resources\Shop]
+   */
+  public function findShops(string $shop_name, ?int $limit, ?int $offset) {
+    $params = [
+      "shop_name" => $shop_name
+    ];
+    if ($limit) $params['limit'] = $limit;
+    if ($offset) $params['offset'] = $offset;
+    $response = static::$client->get(
+      "/application/shops",
+      $params
+    );
+    return static::getResource($response, "Shop");
   }
 
 }

@@ -79,6 +79,21 @@ class Shop extends Resource {
   }
 
   /**
+   * Get all production partners for the shop.
+   *
+   * @param array $params
+   * @return \Etsy\Collection
+   */
+  public function getProductionPartners() {
+    return $this->request(
+      "GET",
+      "/application/shops/{$this->shop_id}/production-partners",
+      "ProductionPartner"
+    )
+      ->append(['shop_id' => $this->shop_id]);
+  }
+
+  /**
    * Get all reviews for the shop.
    *
    * @param array $params
@@ -149,6 +164,70 @@ class Shop extends Resource {
     // Assign the shop id to the profile and associated resources.
     $this->assignShopIdToProfile($profile);
     return $profile;
+  }
+
+  /**
+   * Get all return policies for the shop.
+   *
+   * @return Etsy\Collection[Etsy\Resources\ReturnPolicy]
+   */
+  public function getReturnPolicies() {
+    $policies = $this->request(
+      "GET",
+      "/application/shops/{$this->shop_id}/policies/return",
+      "ReturnPolicy"
+    )->append(['shop_id' => $this->shop_id]);
+    return $profiles;
+  }
+
+  /**
+   * Gets a single shipping profile for the shop.
+   *
+   * @param integer $policy_id
+   * @return Etsy\Resources\ReturnPolicy
+   */
+  public function getReturnPolicy($policy_id) {
+    $policy = $this->request(
+      "GET",
+      "/application/shops/{$this->shop_id}/shipping-profiles/{$policy_id}",
+      "ReturnPolicy"
+    );
+    return $policy;
+  }
+
+  /**
+   * Consolidate two shop return policies.
+   *
+   * @param integer $source_policy_id
+   * @param integer $destination_policy_id
+   * @return Etsy\Resources\ReturnPolicy
+   */
+  public function consolidateReturnPolicies(int $source_policy_id, int $destination_policy_id) {
+    $data = [
+      'source_policy_id' => $source_policy_id,
+      'destination_policy_id' => $destination_policy_id
+    ];
+    return $this->updateRequest(
+      "/application/shops/{$this->shop_id}/policies/return/consolidate",
+      $data,
+      'POST'
+    );
+  }
+  /**
+   * Creates a new return policy for the shop.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/createShopReturnPolicy
+   * @param array $data
+   * @return Etsy\Resources\ReturnPolicy
+   */
+  public function createReturnPolicy(array $data) {
+    $policy = $this->request(
+      "POST",
+      "/application/shops/{$this->shop_id}/policies/return",
+      "ReturnPolicy",
+      $data
+    );
+    return $policy;
   }
 
   /**

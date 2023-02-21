@@ -19,7 +19,11 @@ class Listing extends Resource {
   protected $_associations = [
     "Shop" => "Shop",
     "User" => "User",
-    "Images" => "Image"
+    "Images" => "Image",
+    "Translations" => "Translation",
+    "Inventory" => "Inventory",
+    "Videos" => "Video",
+    "Shipping" => "Shipping"
   ];
 
   /**
@@ -32,7 +36,8 @@ class Listing extends Resource {
   public function update(array $data) {
     return $this->updateRequest(
       "/application/shops/{$this->shop_id}/listings/{$this->listing_id}",
-      $data
+      $data,
+      'PATCH'
     );
   }
 
@@ -44,7 +49,7 @@ class Listing extends Resource {
    */
   public function delete() {
     return $this->deleteRequest(
-      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}"
+      "/application/listings/{$this->listing_id}"
     );
   }
 
@@ -153,7 +158,7 @@ class Listing extends Resource {
   public function getImages() {
     return $this->request(
       "GET",
-      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/images",
+      "/application/listings/{$this->listing_id}/images",
       "ListingImage"
     )
       ->append(["shop_id" => $this->shop_id]);
@@ -169,7 +174,7 @@ class Listing extends Resource {
   public function getImage($listing_image_id) {
     $listing_image = $this->request(
       "GET",
-      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/images/{$listing_image_id}",
+      "/application/listings/{$this->listing_id}/images/{$listing_image_id}",
       "ListingImage"
     );
     if($listing_image) {
@@ -177,7 +182,7 @@ class Listing extends Resource {
     }
     return $listing_image;
   }
-
+  
   /**
    * Upload a listing image.
    *
@@ -199,6 +204,63 @@ class Listing extends Resource {
       $listing_image->shop_id = $this->shop_id;
     }
     return $listing_image;
+  }
+
+  /**
+   * Get the Listing Videos for the listing.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/getListingVideos
+   * @return Etsy\Collection[Etsy\Resources\ListingVideo]
+   */
+  public function getVideos() {
+    return $this->request(
+      "GET",
+      "/application/listings/{$this->listing_id}/videos",
+      "ListingVideo"
+    )
+      ->append(["shop_id" => $this->shop_id]);
+  }
+
+  /**
+   * Get a specific listing video.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/getListingVideo
+   * @param integer|string $listing_video_id
+   * @return Etsy\Resources\ListingVideo
+   */
+  public function getVideo($listing_video_id) {
+    $listing_video = $this->request(
+      "GET",
+      "/application/listings/{$this->listing_id}/videos/{$listing_video_id}",
+      "ListingVideo"
+    );
+    if($listing_video) {
+      $listing_video->shop_id = $this->shop_id;
+    }
+    return $listing_video;
+  }
+  
+  /**
+   * Upload a listing video.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/uploadListingVideo
+   * @param array $data
+   * @return Etsy\Resources\ListingVideo
+   */
+  public function uploadVideo(array $data) {
+    if(!isset($data['video']) && !isset($data['video_id'])) {
+      throw new ApiException("Request requires either 'video_id' or 'video' paramater.");
+    }
+    $listing_video = $this->request(
+      "POST",
+      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/videos",
+      "ListingVideo",
+      $data
+    );
+    if($listing_video) {
+      $listing_video->shop_id = $this->shop_id;
+    }
+    return $listing_video;
   }
 
   /**
@@ -245,6 +307,27 @@ class Listing extends Resource {
       ($inventory->products ?? [])
     );
     return $inventory;
+  }
+
+  /**
+   * Get an offering for a listing. Use this method to bypass going through the ListingInventory resource.
+   *
+   * @link https://developers.etsy.com/documentation/reference#tag/ShopListing-Offering
+   * @param integer|string $product_id
+   * @param integer|string $product_offering_id
+   * @return Etsy\Resources\ListingOffering
+   */
+  public function getOffering($product_id, $product_offering_id) {
+    $offering = $this->request(
+      "GET",
+      "/application/listings/{$this->listing_id}/inventory/products/{$product_id}/offerings/{$product_offering_id}",
+      "ListingOffering"
+    );
+    if($offering) {
+      $offering->listing_id = $this->listing_id;
+      $offering->product_id = $product_id;
+    }
+    return $offering;
   }
 
   /**
@@ -340,5 +423,21 @@ class Listing extends Resource {
       $data
     );
   }
+
+  /**
+   * Get all reviews for the listing.
+   *
+   * @param array $params
+   * @return Etsy\Collection[Etsy\Resources\Review]
+   */
+  public function getReviews(array $params = []) {
+    return $this->request(
+      "GET",
+      "/application/listings/{$this->listing_id}/reviews",
+      "Review",
+      $params
+    );
+  }
+
 
 }
