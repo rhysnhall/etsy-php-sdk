@@ -134,7 +134,7 @@ class Shop extends Resource {
    * Gets a single shipping profile for the shop.
    *
    * @param integer|string $shipping_profile_id
-   * @return Etsy\Resources\ShippingProfile
+   * @return Etsy\Collection[Etsy\Resources\ShippingProfile]
    */
   public function getShippingProfile($shipping_profile_id) {
     $profile = $this->request(
@@ -152,7 +152,7 @@ class Shop extends Resource {
    *
    * @link https://developers.etsy.com/documentation/reference/#operation/createShopShippingProfile
    * @param array $data
-   * @return Etsy\Resources\ShippingProfile
+   * @return Etsy\Collection[Etsy\Resources\ShippingProfile]
    */
   public function createShippingProfile(array $data) {
     $profile = $this->request(
@@ -177,7 +177,7 @@ class Shop extends Resource {
       "/application/shops/{$this->shop_id}/policies/return",
       "ReturnPolicy"
     )->append(['shop_id' => $this->shop_id]);
-    return $profiles;
+    return $policies;
   }
 
   /**
