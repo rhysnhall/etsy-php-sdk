@@ -40,6 +40,11 @@ class Client {
   protected $config = [];
 
   /**
+   * @var int
+   */
+  var $lastRefreshAttempt = null;
+
+  /**
    * Create a new instance of Client.
    *
    * @param string $client_id
@@ -123,6 +128,7 @@ class Client {
       $response = $e->getResponse();
       $body = json_decode($response->getBody(), false);
       $status_code = $response->getStatusCode();
+
       if($status_code == 404 && !($this->config['404_error'] ?? false)) {
         $response = new \stdClass;
         $response->uri = $uri;
@@ -130,6 +136,61 @@ class Client {
         $response->code = $status_code;
         return $response;
       }
+
+		if (
+			$status_code == 401 &&
+			$body->error == "invalid_token" &&
+			isset( $this->config["autoRefreshSettings"] )
+		) {
+
+			/* let's only make an attempt if it's been at least one minute since the last attempt.
+			* If it's been less than a minute, chances are we just refreshed, and it *seemed* to
+			* work fine, but then our recursive call failed with another 401. It's unlikely that
+			* such an event will occur, which means that it will definitely occur. If we don't
+			* put some kind of check here, we could end up making infinite recursive calls.
+			*/
+			if (
+				!$this->lastRefreshAttempt ||
+				time() - $this->lastRefreshAttempt > 60
+			) {
+				
+				$this->lastRefreshAttempt = time();
+
+				/* 2023-04-07: refreshAccessToken either works, or errors out. So checking for a valid
+				* response isn't all that useful, and we can never call a provided onFail function.
+				* But let's do it anyway in case refreshAccessToken is ever modified to handle errors differently
+				*/
+				$response = $this->refreshAccessToken( $this->config["autoRefreshSettings"]["refreshToken"] );
+				
+				if (
+					$response &&
+					isset( $response["access_token"] ) &&
+					isset( $response["refresh_token"] )
+				) {
+					// success
+					$this->setApiKey( $response["access_token"] );
+
+					if (
+						isset( $this->config["autoRefreshSettings"]["onSuccess"] ) &&
+						is_callable( $this->config["autoRefreshSettings"]["onSuccess"] )
+					) {
+						$this->config["autoRefreshSettings"]["onSuccess"]($response);
+					}
+
+					// ok let's make a recursive call
+					return $this->__call( $method, $args );
+				} else {
+					// failure
+					if (
+						isset( $this->config["autoRefreshSettings"]["onFail"] ) &&
+						is_callable( $this->config["autoRefreshSettings"]["onFail"] )
+					) {
+						$this->config["autoRefreshSettings"]["onFail"]($response);
+					}
+				}
+			}
+		}
+
       throw new RequestException(
         "Received HTTP status code [$status_code] with error \"{$body->error}\"."
       );
