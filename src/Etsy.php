@@ -145,7 +145,7 @@ class Etsy {
    */
   public function getUser($user_id = null) {
     $user_id ?? explode(".", $this->api_key)[0];
-    $response = static::$client->get("/application/users/{$user_id}");
+    $response = static::$client->get("/application/users/{$user_id}", []);
     return static::getResource($response, "User");
   }
 
@@ -162,7 +162,7 @@ class Etsy {
     if(!$shop_id) {
       return $this->getUser()->getShop();
     }
-    $response = static::$client->get("/application/shops/{$shop_id}");
+    $response = static::$client->get("/application/shops/{$shop_id}", []);
     return static::getResource($response, "Shop");
   }
 

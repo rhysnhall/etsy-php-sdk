@@ -439,5 +439,19 @@ class Listing extends Resource {
     );
   }
 
-
+  /**
+   * Get all transactions for the listing.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/getShopReceiptTransactionsByListing
+   * @param array $params
+   * @return Etsy\Collection[Etsy\Resources\Transaction]
+   */
+  public function getTransactions(array $params = []) {
+    return $this->request(
+      "GET",
+      "/application/shops/{$this->shop_id}/listing/{$this->listing_id}/transactions",
+      "Transaction",
+      $params
+    );
+  }
 }
