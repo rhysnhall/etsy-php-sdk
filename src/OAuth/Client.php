@@ -190,7 +190,8 @@ class Client {
       $response = json_decode($response->getBody(), false);
       return [
         'access_token' => $response->access_token,
-        'refresh_token' => $response->refresh_token
+        'refresh_token' => $response->refresh_token,
+        'expires_at' => (time() + $response->expires_in)
       ];
     }
     catch(\Exception $e) {
