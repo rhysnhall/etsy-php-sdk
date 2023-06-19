@@ -40,6 +40,11 @@ class Client {
   protected $config = [];
 
   /**
+   * @var array
+   */
+  public $headers = [];
+
+  /**
    * Create a new instance of Client.
    *
    * @param string $client_id
