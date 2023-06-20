@@ -29,7 +29,7 @@ class Etsy {
 
   public function __construct(
     string $client_id,
-    string $api_key,
+    string $api_key = null,
     array $config = []
   ) {
     $this->client_id = $client_id;
