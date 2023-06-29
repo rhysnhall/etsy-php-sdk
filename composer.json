@@ -1,6 +1,6 @@
 {
   "name": "rhysnhall/etsy-php-sdk",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "PHP SDK for Etsy API v3.",
   "type": "library",
   "keywords": [
@@ -15,6 +15,11 @@
       "name": "Rhys Hall",
       "email": "hello@rhyshall.com",
       "homepage": "https://github.com/rhysnhall"
+    },
+    {
+      "name": "Andrew Christensen",
+      "email": "andrew@critical-code.com",
+      "homepage": "https://github.com/erankco"
     }
   ],
   "require": {
