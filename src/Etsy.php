@@ -133,7 +133,7 @@ class Etsy {
    * @return array
    */
   public function tokenScopes() {
-    $response = static::$client->get("/application/scopes");
+    $response = static::$client->post("/application/scopes");
     return $response ?? [];
   }
 
@@ -144,7 +144,7 @@ class Etsy {
    * @return Etsy\Resources\User
    */
   public function getUser($user_id = null) {
-    $user_id ?? explode(".", $this->api_key)[0];
+    $user_id = $user_id ?? explode(".", $this->api_key)[0];
     $response = static::$client->get("/application/users/{$user_id}", []);
     return static::getResource($response, "User");
   }
@@ -162,7 +162,7 @@ class Etsy {
     if(!$shop_id) {
       return $this->getUser()->getShop();
     }
-    $response = static::$client->get("/application/shops/{$shop_id}", []);
+    $response = static::$client->get("/application/shops/{$shop_id}");
     return static::getResource($response, "Shop");
   }
 
@@ -292,17 +292,15 @@ class Etsy {
   /**
    * Find shops based on a shop name
    *
-   * @param string $shop_name
-   * @param int|null $limit
-   * @param int|null $offset
+   * @param array $params
    * @return Etsy\Collection[Etsy\Resources\Shop]
    */
-  public function findShops(string $shop_name, ?int $limit, ?int $offset) {
-    $params = [
-      "shop_name" => $shop_name
-    ];
-    if ($limit) $params['limit'] = $limit;
-    if ($offset) $params['offset'] = $offset;
+  public function findShops(
+    array $params
+  ) {
+    if(!isset($params['shop_name'])) {
+      throw new ApiException("Etsy findShops operation expects a `shop_name` param.");
+    }
     $response = static::$client->get(
       "/application/shops",
       $params
