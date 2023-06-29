@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.4.0
+* Make api key optional when initializing client.
+* Etsy::getUser now supports an optional user ID.
+* Add expiry value to access tokens.
+* Change Listing update request to use new PATCH method.
+* Add new associations to Listing resource.
+* Update endpoints for various Listing associated resources.
+
+### New
+* Added Etsy::getMe() method: [User getMe method](https://developers.etsy.com/documentation/reference#operation/getMe)
+* Added Etsy::tokenScopes method: [tokenScopes](https://developers.etsy.com/documentation/reference#operation/tokenScopes)
+* Added new [BuyerTaxonomy](https://developers.etsy.com/documentation/reference#tag/BuyerTaxonomy) and BuyerTaxonomyProperty resource and supporting methods.
+* Added Etsy::findShops() method: [findShops](https://developers.etsy.com/documentation/reference#operation/findShops)
+* Add new [ListingVideo](https://developers.etsy.com/documentation/reference#tag/ShopListing-Video) resource and supporting methods.
+* Add new [ProductionPartner](https://developers.etsy.com/documentation/reference#tag/Shop-ProductionPartner) resource and supporting methods.
+* Add new [ReturnPolicy](https://developers.etsy.com/documentation/reference#tag/Shop-Return-Policy) resource and supporting methods.
+
+---
+
 ## v0.3.4
 ### Fixed issues
 * Add pagination support for the Receipt resource. [Issue #15](https://github.com/rhysnhall/etsy-php-sdk/issues/15)
