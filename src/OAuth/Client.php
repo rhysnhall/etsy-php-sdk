@@ -121,9 +121,11 @@ class Client {
     try {
       $client = $this->createHttpClient();
       $response = $client->{$method}(self::API_URL.$uri, $opts);
+      $headers = $response->getHeaders();
       $response = json_decode($response->getBody(), false);
       if($response) {
         $response->uri = $uri;
+        $response->headers = $headers;
       }
       return $response;
     }
