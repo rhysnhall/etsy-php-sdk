@@ -161,9 +161,9 @@ class Collection {
    * @return array
    */
   public function toJson() {
-    return array_map(function($resource) {
-      return $resource->toJson();
-    }, $this->data);
+    return json_encode(array_map(function($resource) {
+      return $resource->toArray();
+    }, $this->data));
   }
 
 }
