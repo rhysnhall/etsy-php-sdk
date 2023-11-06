@@ -269,11 +269,12 @@ class Listing extends Resource {
    * @link https://developers.etsy.com/documentation/reference#operation/getListingInventory
    * @return Etsy\Resources\ListingInventory
    */
-  public function getInventory() {
+  public function getInventory(array $params = []) {
     $inventory = $this->request(
       "GET",
       "/application/listings/{$this->listing_id}/inventory",
-      "ListingInventory"
+      "ListingInventory",
+      $params
     );
     // Assign the listing ID to associated inventory products.
     array_map(
