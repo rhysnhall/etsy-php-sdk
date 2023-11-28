@@ -30,13 +30,21 @@ class Request {
     if(!isset($params['image']) && !isset($params['file'])) {
       return false;
     }
+    if($other_params = array_diff_key($params, array_flip(['image', 'file']))) {
+      $other_params = array_map(function ($key) use($other_params){
+        return [
+          'name' => $key,
+          'contents' => $other_params[$key]
+        ];
+      }, array_keys($other_params));
+    }
     $type = isset($params['image']) ? 'image' : 'file';
-    return [
-      [
+    return array_merge($other_params ?? [],
+      [[
         'name' => $type,
         'contents' => fopen($params[$type], 'r')
-      ]
-    ];
+      ]]
+    );
   }
 
   /**
