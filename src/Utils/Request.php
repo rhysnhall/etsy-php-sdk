@@ -27,16 +27,21 @@ class Request {
    * @return array
    */
   public static function prepareFile(array $params) {
-    if(!isset($params['image']) && !isset($params['file'])) {
-      return false;
+    $result = [];
+    foreach ($params as $key => $value) {
+      if(in_array($key, ['image', 'video', 'file'])) {
+        $result[] = [
+          'name' => $key,
+          'contents' => fopen($value, 'r')
+        ];
+      } else {
+        $result[] = [
+          'name' => $key,
+          'contents' => $value
+        ];
+      }
     }
-    $type = isset($params['image']) ? 'image' : 'file';
-    return [
-      [
-        'name' => $type,
-        'contents' => fopen($params[$type], 'r')
-      ]
-    ];
+    return $result;
   }
 
   /**
