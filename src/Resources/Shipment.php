@@ -27,7 +27,7 @@ class Shipment extends Resource {
   ): ?\Etsy\Resources\Shipment {
     return self::request(
       "POST",
-      "/applications/shops/{$shop_id}/receipts/{$receipt_id}/tracking",
+      "/application/shops/{$shop_id}/receipts/{$receipt_id}/tracking",
       "Shipment",
       $data
     );
