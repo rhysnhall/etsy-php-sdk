@@ -1,8 +1,6 @@
 # Etsy PHP SDK
 A PHP SDK for the Etsy API v3.
 
-**Major update on the 13th July 2024. This fixed all major issues and adds resources for recent additions to the API. If you are upgrading from a version prior to this - consider the whole thing to be breaking. There is no upgrade path and you will need to review all your code.**
-
 Proper documentation still to come. Want to write it for me? I'll buy you an iced latte.
 
 ## Requirements
