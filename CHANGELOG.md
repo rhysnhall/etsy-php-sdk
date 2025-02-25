@@ -1,4 +1,8 @@
 # Changelog
+## v1.0.2
+### Fisued issues
+* Fix typos in Listing resource.
+* Pass additional params in the prepareFile Request util.
 
 ## v1.0.1
 ### Fixed issues
