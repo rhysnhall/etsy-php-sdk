@@ -27,21 +27,22 @@ class Request {
    * @return array
    */
   public static function prepareFile(array $params) {
-    $result = [];
+    $data = [];
     foreach ($params as $key => $value) {
       if(in_array($key, ['image', 'video', 'file'])) {
-        $result[] = [
+        $data[] = [
           'name' => $key,
           'contents' => fopen($value, 'r')
         ];
       } else {
-        $result[] = [
+        $data[] = [
           'name' => $key,
           'contents' => $value
         ];
       }
     }
-    return $result;
+    
+    return $data;
   }
 
   /**
