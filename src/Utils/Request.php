@@ -31,12 +31,18 @@ class Request {
       return false;
     }
     $type = isset($params['image']) ? 'image' : 'file';
-    return [
-      [
-        'name' => $type,
-        'contents' => fopen($params[$type], 'r')
-      ]
+    $data[] = [
+      'name' => $type,
+      'contents' => fopen($params[$type], 'r')
     ];
+    foreach ($params as $key => $value) {
+      if ($key == $type) continue;
+      $data[] = [
+        'name' => $key,
+        'contents' => $value
+      ];
+    }
+    return $data;
   }
 
   /**

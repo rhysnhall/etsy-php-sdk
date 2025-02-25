@@ -295,7 +295,7 @@ class Listing extends Resource {
     return self::request(
       "PATCH",
       "/application/shops/{$shop_id}/listings/{$listing_id}",
-      "ListingProperty",
+      "Listing",
       $data
     );
   }
@@ -316,7 +316,7 @@ class Listing extends Resource {
       return $this;
     }
     return $this->updateRequest(
-      "/application/shops/{$shop_id}/listings/{$listing_id}",
+      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}",
       $data,
       "PATCH"
     );
