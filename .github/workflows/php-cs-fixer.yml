@@ -1,0 +1,5 @@
+- name: PHP-CS-Fixer
+  uses: docker://ghcr.io/php-cs-fixer/php-cs-fixer:3-php8.3
+    with:
+      args: check src
+      # use `check .` if your repository not having paths configured in .php-cs-fixer[.dist].php
