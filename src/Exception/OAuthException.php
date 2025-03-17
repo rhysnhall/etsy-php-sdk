@@ -2,4 +2,6 @@
 
 namespace Etsy\Exception;
 
-class OAuthException extends \Exception {}
+class OAuthException extends \Exception
+{
+}

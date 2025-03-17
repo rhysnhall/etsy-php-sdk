@@ -2,6 +2,6 @@
 
 namespace Etsy\Exception;
 
-class SdkException extends \Exception {
-
+class SdkException extends \Exception
+{
 }

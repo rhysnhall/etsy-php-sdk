@@ -2,6 +2,6 @@
 
 namespace Etsy\Exception;
 
-class ApiException extends \Exception {
-
+class ApiException extends \Exception
+{
 }
