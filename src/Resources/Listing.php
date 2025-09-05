@@ -63,10 +63,38 @@ class Listing extends Resource {
    * @var array
    */
   protected $_associations = [
-    "Shop" => "Shop",
-    "User" => "User",
-    "Images" => "ListingImage"
+    "shop" => "Shop",
+    "user" => "User",
+    "images" => "ListingImage",
+    'shipping_profile' => 'ShippingProfile',
+    'videos' => 'ListingVideo'
   ];
+
+  /**
+   * Get a collection of resources.
+   * 
+   * @param string $url
+   * @param array $params
+   * @return \Etsy\Collection[\Etsy\Resources\Listing]
+   */
+  public static function fetchAll(
+    string $url,
+    array $params
+  ): \Etsy\Collection {
+    $listings = self::request(
+      "GET",
+      $url,
+      "Listing",
+      $params
+    );
+    array_map(
+      (function($listing) {
+        $listing->assignShopIdToIncludedResources();
+      }),
+      $listings->data
+    );
+    return $listings;
+  }
 
   /**
    * Get all active listings on Etsy.
@@ -77,10 +105,8 @@ class Listing extends Resource {
   public static function all(
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
-      "GET",
+    return self::fetchAll(
       "/application/listings/active",
-      "Listing",
       $params
     );
   }
@@ -101,10 +127,8 @@ class Listing extends Resource {
     if(count($includes) > 0) {
       $params['includes'] = $includes;
     }
-    return self::request(
-      "GET",
+    return self::fetchAll(
       "/application/listings/batch",
-      "Listing",
       $params
     );
   }
@@ -120,10 +144,8 @@ class Listing extends Resource {
     int $shop_id,
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
-      "GET",
+    return self::fetchAll(
       "/application/shops/{$shop_id}/listings",
-      "Listing",
       $params
     );
   }
@@ -139,10 +161,8 @@ class Listing extends Resource {
     int $shop_id,
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
-      "GET",
+    return self::fetchAll(
       "/application/shops/{$shop_id}/listings/active",
-      "Listing",
       $params
     );
   }
@@ -158,10 +178,8 @@ class Listing extends Resource {
     int $shop_id,
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
-      "GET",
+    return self::fetchAll(
       "/application/shops/{$shop_id}/listings/featured",
-      "Listing",
       $params
     );
   }
@@ -179,10 +197,8 @@ class Listing extends Resource {
     int $receipt_id,
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
-      "GET",
+    return self::fetchAll(
       "/application/shops/{$shop_id}/receipts/{$receipt_id}/listings",
-      "Listing",
       $params
     );
   }
@@ -198,10 +214,9 @@ class Listing extends Resource {
     int $shop_id,
     int $policy_id
   ): \Etsy\Collection {
-    return self::request(
-      "GET",
+    return self::fetchAll(
       "/application/shops/{$shop_id}/policies/return/{$policy_id}/listings",
-      "Listing"
+      $params
     );
   }
 
@@ -219,10 +234,8 @@ class Listing extends Resource {
     array $params = []
   ): \Etsy\Collection {
     $params['shop_section_ids'] = $section_ids;
-    return self::request(
-      "GET",
+    return self::fetchAll(
       "/application/shops/{$shop_id}/shop-sections/listings",
-      "Listing",
       $params
     );
   }
@@ -238,12 +251,16 @@ class Listing extends Resource {
     int $listing_id,
     array $params = []
   ): ?\Etsy\Resources\Listing {
-    return self::request(
+    $listing = self::request(
       "GET",
       "/application/listings/{$listing_id}",
       "Listing",
       $params
     );
+    if($listing) {
+      $listing->assignShopIdToIncludedResources();
+    }
+    return $listing;
   }
 
   /**
@@ -408,6 +425,28 @@ class Listing extends Resource {
   }
 
   /**
+   * Upload a file.
+   * 
+   * @param mixed $file
+   * @param string $name
+   * @param array $options
+   * @return \Etsy\Resources\ListingFile
+   */
+  public function uploadFile(
+    mixed $file,
+    string $name,
+    array $options = []
+  ): ?\Etsy\Resources\ListingFile {
+    $options['file'] = $file;
+    $options['name'] = $name;
+    return ListingFile::create(
+      $this->shop_id,
+      $this->listing_id,
+      $options
+    );
+  }
+
+  /**
    * Get the images for the listing.
    * 
    * @return \Etsy\Collection[\Etsy\Resources\ListingImage]
@@ -453,6 +492,25 @@ class Listing extends Resource {
   }
 
   /**
+   * Upload an image.
+   * 
+   * @param mixed $image
+   * @param array $options
+   * @return \Etsy\Resources\ListingImage
+   */
+  public function uploadImage(
+    mixed $image,
+    array $options
+  ): ?\Etsy\Resources\ListingImage {
+    $options['image'] = $image;
+    return ListingImage::create(
+      $this->shop_id,
+      $this->listing_id,
+      $options
+    );
+  }
+
+  /**
    * Get the variation images for the listing.
    * 
    * @return \Etsy\Collection[\Etsy\Resources\ListingVariationImage]
@@ -476,7 +534,7 @@ class Listing extends Resource {
   }
 
   /**
-   * Get a specific listing image.
+   * Get a specific listing video.
    * 
    * @param int $video_id
    * @return \Etsy\Resources\ListingVideo
@@ -500,6 +558,30 @@ class Listing extends Resource {
     int $video_id
   ): ?\Etsy\Resources\ListingVideo {
     $data['video_id'] = $video_id;
+    return ListingVideo::create(
+      $this->shop_id,
+      $this->listing_id,
+      $data
+    );
+  }
+
+  
+  /**
+   * Upload a video.
+   * 
+   * @param mixed $video
+   * @param string $name
+   * @param array $options
+   * @return \Etsy\Resources\ListingVideo
+   */
+  public function uploadVideo(
+    mixed $video,
+    string $name
+  ): ?\Etsy\Resources\ListingVideo {
+    $data = [
+      'video' => $video,
+      'name' => $name
+    ];
     return ListingVideo::create(
       $this->shop_id,
       $this->listing_id,
@@ -550,5 +632,14 @@ class Listing extends Resource {
     );
   }
 
-
+  /**
+   * Assigns the shop ID property to included resources.
+   * 
+   * @return void
+   */
+  public function assignShopIdToIncludedResources() {
+    if($this->shipping_profile) {
+      $this->shipping_profile->assignShopIdToProfile($this->shop_id);
+    }
+  }
 }

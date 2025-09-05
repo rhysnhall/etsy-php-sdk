@@ -27,13 +27,23 @@ class Request {
    * @return array
    */
   public static function prepareFile(array $params) {
-    if(!isset($params['image']) && !isset($params['file'])) {
+    if(isset($params['image'])) {
+      $type = 'image';
+    }
+    else if(isset($params['file'])) {
+      $type ='file';
+    }
+    else if(isset($params['video'])) {
+      $type = 'video';
+    }
+    else {
       return false;
     }
-    $type = isset($params['image']) ? 'image' : 'file';
     $data[] = [
       'name' => $type,
-      'contents' => fopen($params[$type], 'r')
+      'contents' => isset($params[$type]['contents']) 
+        ? $params[$type]['contents'] 
+        : fopen($params[$type], 'r')
     ];
     foreach ($params as $key => $value) {
       if ($key == $type) continue;

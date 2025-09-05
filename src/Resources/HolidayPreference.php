@@ -3,10 +3,9 @@
 namespace Etsy\Resources;
 
 use Etsy\Resource;
-use Etsy\Resources\Listing;
 
 /**
- * HolidayPreference resource class.
+ * HolidayPreference resource class. This feature is only available for Shops in the US and CA.
  *
  * @link https://developers.etsy.com/documentation/reference/#tag/Shop-HolidayPreferences
  * @author Rhys Hall hello@rhyshall.com
@@ -22,6 +21,7 @@ class HolidayPreference extends Resource {
 
   /**
    * Get all holiday preferences for a shop.
+   * This will return a 400 error for shops not located in the US or CA.
    * 
    * @param int $shop_id
    * @return Etsy\Collection[Etsy\Resources\HolidayPreference]

@@ -164,7 +164,7 @@ When there is more than one result a collection will be returned.
 $reviews = Review::all();
 ```
 
-Results are stored as an array of `Resource` the `data` property of the collection.
+Results are stored as an array of `Resource` on the `data` property of the collection.
 ```php
 $firstReview = $reviews->data[0];
 ```
@@ -216,18 +216,93 @@ $response = Etsy::$client->get(
 );
 ```
 
-If you still want to use the Resources classes you can convert the response into a Resource.
+If you still want to use the Resources classes you can convert the response into a `Resource`. Pass the response from the client as the first parameter and the name of the resource as the second. If the response is an array then a `Collection` will be returned.
 
 ```php
 $listings = Etsy::getResource(
-  $response,
+  Etsy::$client->get("/application/listings/active"),
   'Listing'
 );
 ```
 
+### File Uploads
+
+Etsy listings support uploads for files, images and videos depending on the Listing type. The SDK includes ***basic*** support for uploading files.
+
+#### Images
+To upload an image you need to pass the image data under the `image` parameter on your request as if it was prepared for multipart form-data.
+
+```php
+$data = [
+  'image' => [
+    'content' => fopen('./path-to-image.jpg')
+  ]
+];
+$image = ListingImage::create(
+  $shopId,
+  $listingId,
+  $data
+);
+```
+
+For convenience you can just include a path or an external URL and the SDK will handle ***basic*** reading of the file.
+
+```php
+$data = [
+  'image' => './path-to-image.jpg'
+];
+```
+
+#### Other files
+Video and file uploads work the same way but these also require a `name` parameter on the upload request. This name just represents the name of the file to upload.
+
+```php
+ListingVideo::create(
+  $shopId,
+  $listingId,
+  [
+    'video' => './path-to-video.mp4',
+    'name' => $fileName
+  ]
+);
+
+ListingFile::create(
+  $shopId,
+  $listingId,
+  [
+    'file' => './downloadable-template.pdf',
+    'name' => $fileName
+  ]
+);
+```
+
+### Instance Methods
+Most of the SDK is built around calling static methods on the different Etsy resources. For convenience some resources contain instance methods. These are designed to streamline interaction with the SDK.
+
+#### Save method
+Many resources contain a `save()` method which is a convenient shortcut for a patch request. In most cases the current data will be compared against the values of the `_originalState` property on the Resource and if no data has been changed the patch request will be skipped.
+
+```php
+$listing = \Etsy\Resources\Listing::get($listingId);
+
+# Update listing title.
+$listing->title = 'Updated title';
+$listing->save();
+```
+
+#### Other methods
+Review each Resource to better understand the methods available. There are some examples below of methods available to the ***Listing*** resource.
+
+```php
+$listing->images(); // Get all images for the listing.
+$listing->uploadImage($imageData); // Upload a new image.
+$listing->inventory(); // Get the listing inventory.
+$listing->translation('en'); // Get the English translation for the listing.
+```
+
 ---
 
-Full documentation will be available soon. Email [hello@rhyshall.com](mailto:hello@rhyshall.com) for any assistance.
+Full documentation will be available soon (or so I keep saying). Email [hello@rhyshall.com](mailto:hello@rhyshall.com) for any assistance.
 
 ## Contributing
 Help improve this SDK by contributing.

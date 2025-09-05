@@ -17,7 +17,9 @@ class ReturnPolicy extends Resource {
    * @var array
    */
   protected $_saveable = [
-    'title'
+    'accepts_returns',
+    'accepts_exchanges',
+    'return_deadline'
   ];
 
   /**

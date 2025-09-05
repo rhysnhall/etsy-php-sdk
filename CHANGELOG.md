@@ -1,4 +1,27 @@
 # Changelog
+## v1.1.0
+### Fixed issues
+* Update saveable values on ReturnPolicy resource.
+* Update saveable values on ShippingUpgrade resource.
+* Correct name of Transaction::allbyReceipt to Transaction::allByReceipt
+* Update Request::prepareFile to correctly support video uploads.
+* Add $_saveable property to ListingTranslation resource.
+
+### Changes
+* Add getByUserId() method to Shop resource.
+* Add new ProcessingProfile resource.
+* Add optional params to Transaction::allByReceipt method to cater for new query paramaters associated with this api call.
+* Add ShippingProfile and ListingVideo associations to the Listing resource.
+* Add assignShopIdToIncludedResources() method to Listing resource to ensure associated resources are assigned the shop ID.
+* Changed Request::prepareFile method to support manual upload of images and files (instead of the method forcing it).
+* Add uploadFile() method to Listings resource.
+* Add uploadImage() method to Listings resource.
+* Add uploadVideo() method to Listings resource.
+
+### Breaking changes
+* Remove the User::getShop method.
+* Remove the Shop::count static method. You can get the count for a shops by referencing the count property on the Shop collection after calling Shop::all().
+
 ## v1.0.2
 ### Fisued issues
 * Fix typos in Listing resource.

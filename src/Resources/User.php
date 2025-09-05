@@ -5,6 +5,7 @@ namespace Etsy\Resources;
 use Etsy\Etsy;
 use Etsy\Resource;
 use Etsy\Exception\SdkException;
+use Etsy\Resources\Shop;
 
 /**
  * User resource class. Represents an Etsy User.
@@ -44,31 +45,12 @@ class User extends Resource {
   }
 
   /**
-   * Get the shop for a specific user.
-   * 
-   * @param int $user_id
-   * @return ?Etsy\Resources\Shop
-   */
-  public static function getShop(
-    int $user_id = null
-  ): ?\Etsy\Resources\Shop {
-    if(!$user_id) {
-      $user_id = self::me()->user_id ?? null;
-    }
-    return self::request(
-      "GET",
-      "/application/users/{$user_id}/shops",
-      "Shop"
-    );
-  }
-
-  /**
    * Gets the user's Etsy shop.
    *
    * @return Etsy\Resources\Shop
    */
   public function shop(): ?\Etsy\Resources\Shop {
-    return self::getShop($this->user_id);
+    return Shop::getByUserId($this->user_id);
   }
 
 }

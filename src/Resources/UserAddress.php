@@ -32,8 +32,6 @@ class UserAddress extends Resource {
   /**
    * Get a single address for a user.
    * 
-   * @NOTE this endpoint is not yet active.
-   * 
    * @param int $address_id
    * @return Etsy\Resources\UserAddress
    */

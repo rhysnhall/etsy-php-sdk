@@ -57,6 +57,22 @@ class Shop extends Resource {
   }
 
   /**
+   * Gets a shop by a users ID.
+   * 
+   * @param int $user_id
+   * @return ?Etsy\Resources\Shop
+   */
+  public static function getByUserId(
+    int $user_id
+  ): ?\Etsy\Resources\Shop {
+    return self::request(
+      "GET",
+      "/application/users/{$user_id}/shops",
+      "Shop"
+    );
+  }
+
+  /**
    * Updates a shop.
    * 
    * @param int $shop_id
@@ -96,24 +112,6 @@ class Shop extends Resource {
       "Shop",
       $params
     );
-  }
-
-  /**
-   * Get a count of all shops.
-   * 
-   * @param string $keyword
-   * @param array $params
-   * @return int
-   */
-  public static function count(
-    string $keyword,
-    array $params = []
-  ): int {
-    $result = self::all($keyword, $params);
-    if(!$result || !isset($result->count)) {
-      return 0;
-    }
-    return $result->count;
   }
 
   /**

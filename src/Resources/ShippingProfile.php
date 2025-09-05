@@ -201,7 +201,7 @@ class ShippingProfile extends Resource {
    * @param int $shop_id
    * @return void
    */
-  private function assignShopIdToProfile(
+  public function assignShopIdToProfile(
     int $shop_id
   ) {
     $this->shop_id = $shop_id;

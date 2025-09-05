@@ -16,7 +16,6 @@ class ShippingUpgrade extends Resource {
     'upgrade_name', 
     'type',
     'price',
-    'destination_region',
     'secondary_price',
     'shipping_carrier_id',
     'mail_class',

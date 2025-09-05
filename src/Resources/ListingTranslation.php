@@ -13,6 +13,15 @@ use Etsy\Resource;
 class ListingTranslation extends Resource {
 
   /**
+   * @var array
+   */
+  protected $_saveable = [
+    'title',
+    'description',
+    'tags'
+  ];
+
+  /**
    * Get a listing translation.
    * 
    * @param int $shop_id

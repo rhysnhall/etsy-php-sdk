@@ -77,9 +77,10 @@ class Transaction extends Resource {
    * @param int $receipt_id
    * @return Etsy\Collection[Etsy\Resources\Transaction]
    */
-  public static function allbyReceipt(
+  public static function allByReceipt(
     int $shop_id,
-    int $receipt_id
+    int $receipt_id,
+    array $params = []
   ): \Etsy\Collection {
     return self::request(
       "GET",
