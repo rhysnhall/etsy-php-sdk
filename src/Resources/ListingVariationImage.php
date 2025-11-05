@@ -36,13 +36,13 @@ class ListingVariationImage extends Resource {
    * @param int $shop_id
    * @param $listing_id
    * @param array $variation_images
-   * @return \Etsy\Resources\ListingVariationImage
+   * @return \Etsy\Resources\ListingVariationImage | \Etsy\Collection | null
    */
   public static function update(
     int $shop_id,
     int $listing_id,
     array $variation_images
-  ): ?\Etsy\Resources\ListingVariationImage {
+  ): \Etsy\Resources\ListingVariationImage | \Etsy\Collection | null {
     return self::request(
       "POST",
       "/application/shops/{$shop_id}/listings/{$listing_id}/variation-images",
