@@ -18,6 +18,7 @@ use Etsy\Etsy;
 
 $etsy = new Etsy(
   $client_id,
+  $shared_secret,
   $access_token
 );
 
@@ -29,9 +30,12 @@ $etsy = new Etsy(
 ### Authorizing your app
 The Etsy API uses OAuth 2.0 authentication. You can read more about authenticating with Etsy on their [documentation](https://developers.etsy.com/documentation/essentials/authentication).
 
-The first step in OAuth2 is to request an OAuth token. You will need an existing App API key which you can obtained by registering an app [here](https://www.etsy.com/developers/register).
+The first step in OAuth2 is to request an OAuth token. You will need an existing App API key and shared secret which you can obtain by registering an app [here](https://www.etsy.com/developers/register).
 ```php
-$client = new Etsy\OAuth\Client($client_id);
+$client = new Etsy\OAuth\Client(
+  $client_id,
+  $shared_secret
+);
 ```
 
 Generate a URL to redirect the user to authorize access to your app.
@@ -113,13 +117,13 @@ This will provide you with a brand new set of OAuth2 access and refresh tokens.
 
 ### Basic use
 
-Create a new instance of the Etsy class using your App API key and a user's access token. **You must always initialize the Etsy resource before calling any resources**.
+Create a new instance of the Etsy class using your App API key, app shared secret and a user's access token. **You must always initialize the Etsy resource before calling any resources**.
 
 ```php
 use Etsy\Etsy;
 use Etsy\Resources\User;
 
-$etsy = new Etsy($apiKey, $accessToken);
+$etsy = new Etsy($apiKey, $sharedSecret, $accessToken);
 
 // Get the authenticated user.
 $user = User::me();

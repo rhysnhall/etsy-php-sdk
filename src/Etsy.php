@@ -29,12 +29,13 @@ class Etsy {
 
   public function __construct(
     string $client_id,
+    string $shared_secret,
     ?string $api_key = null,
     array $config = []
   ) {
     $this->client_id = $client_id;
     $this->api_key = $api_key;
-    static::$client = new Client($client_id);
+    static::$client = new Client($client_id, $shared_secret);
     if($api_key) {
       static::$client->setApiKey($api_key);
     }

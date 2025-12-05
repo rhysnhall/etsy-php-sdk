@@ -1,4 +1,25 @@
 # Changelog
+## v1.2.0
+Added support for the new Etsy request header changes. The `x-api-key` header must now include your app's shared secret. The new header format is `x-api-key: keystring:secret`, instead of the previous `x-api-key: keystring`.
+
+Pass the app's shared secret as the second parameter to both the `Client` and `Etsy` classes.
+
+```php
+$client = new Client(
+  $clientId,
+  $sharedSecret
+);
+
+$etsy = new Etsy(
+  $clientId,
+  $sharedSecret,
+  $accessToken
+);
+```
+
+### Fixed issues
+* Fixed return type for listing variation image. closes [#41](https://github.com/rhysnhall/etsy-php-sdk/issues/41)
+
 ## v1.1.0
 ### Fixed issues
 * Update saveable values on ReturnPolicy resource.

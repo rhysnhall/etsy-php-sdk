@@ -51,13 +51,14 @@ class Client {
    * @return void
    */
   public function __construct(
-    string $client_id
+    string $client_id,
+    string $shared_secret
   ) {
-    if(is_null($client_id) || !trim($client_id)) {
-      throw new OAuthException("No client ID found. A valid client ID is required.");
+    if(is_null($client_id) || !trim($client_id) || is_null($shared_secret) || !trim($shared_secret)) {
+      throw new OAuthException("A valid client ID and shared secret are required. You can find these details on the Your Apps page: https://www.etsy.com/developers/your-apps");
     }
     $this->client_id = $client_id;
-    $this->headers['x-api-key'] = $client_id;
+    $this->headers['x-api-key'] = "{$client_id}:{$shared_secret}";
   }
 
   /**
