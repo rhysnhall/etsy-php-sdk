@@ -1,317 +1,444 @@
 # Etsy PHP SDK
-A PHP SDK for the Etsy API v3.
 
-Proper documentation still to come. Want to write it for me? I'll buy you an iced latte.
+A modern, developer-friendly PHP SDK for the Etsy API v3 with full OAuth 2.0 support.
+
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.0-blue.svg)](https://php.net/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-orange.svg)](CHANGELOG.md)
+
+## Quick Links
+
+- **[Installation](#installation)** - Get started quickly
+- **[Authentication Guide](docs/AUTHENTICATION.md)** - Complete OAuth 2.0 setup
+- **[API Reference](docs/API_REFERENCE.md)** - All 32 resources documented
+- **[Examples](docs/EXAMPLES.md)** - Real-world code samples
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+
+## Features
+
+- ✅ **Full Etsy API v3 Support** - All endpoints and resources
+- ✅ **OAuth 2.0 with PKCE** - Secure authentication
+- ✅ **Resource-Based Architecture** - Intuitive object-oriented interface
+- ✅ **Change Tracking** - Automatic detection of modified properties
+- ✅ **Pagination Support** - Handle large datasets efficiently
+- ✅ **File Uploads** - Images, videos, and downloadable files
+- ✅ **Type Safety** - Clear return types and documentation
+- ✅ **Association Resolution** - Automatic relationship loading
 
 ## Requirements
-PHP 8 or greater.
 
-## Install
-Install the package using composer.
-```php
+- **PHP**: 8.0 or greater
+- **Composer**: For package management
+- **GuzzleHTTP**: ^7.3 (installed automatically)
+
+## Installation
+
+Install via Composer:
+
+```bash
 composer require rhysnhall/etsy-php-sdk
 ```
 
-Include the Etsy class.
+## Quick Start
+
+### 1. Initialize the SDK
+
 ```php
 use Etsy\Etsy;
 
 $etsy = new Etsy(
-  $client_id,
-  $shared_secret,
-  $access_token
-);
-
-// Do the Etsy things.
-```
-
-## Usage
-
-### Authorizing your app
-The Etsy API uses OAuth 2.0 authentication. You can read more about authenticating with Etsy on their [documentation](https://developers.etsy.com/documentation/essentials/authentication).
-
-The first step in OAuth2 is to request an OAuth token. You will need an existing App API key and shared secret which you can obtain by registering an app [here](https://www.etsy.com/developers/register).
-```php
-$client = new Etsy\OAuth\Client(
-  $client_id,
-  $shared_secret
+    $client_id,      // Your app's client ID
+    $shared_secret,  // Your app's shared secret
+    $access_token    // User's access token
 );
 ```
 
-Generate a URL to redirect the user to authorize access to your app.
-```php
-$url = $client->getAuthorizationUrl(
-  $redirect_uri,
-  $scopes,
-  $code_challenge,
-  $nonce
-);
-```
-
-###### Redirect URI
-You must set an authorized callback URL. Check out the [Etsy documentation](https://developers.etsy.com/documentation/essentials/authentication#redirect-uris) for further information.
-
-###### Scope
-Depending on your apps requirements, you will need to specify the [permission scopes](https://developers.etsy.com/documentation/essentials/authentication#scopes) you want to authorize access for.
-```php
-$scopes = ["listings_d", "listings_r", "listings_w", "profile_r"];
-```
-
-You can get all scopes, but it is generally recommended to only get what you need.
-```php
-$scopes = \Etsy\Utils\PermissionScopes::ALL_SCOPES;
-```
-
-###### Code challenge
-You'll need to generate a [PKCE code challenge](https://developers.etsy.com/documentation/essentials/authentication#proof-key-for-code-exchange-pkce) and save this along with the verifier used to generate the challenge. You are welcome to generate your own, or let the SDK do this for you.
-```php
-[$verifier, $code_challenge] = $client->generateChallengeCode();
-```
-
-###### Nonce
-The nonce is a single use token used for CSRF protection. You can use any token you like but it is recommended to let the SDK generate one for you each time you authorize a user. Save this for verifying the response later on.
-```php
-$nonce = $client->createNonce();
-```
-
-
-The URL will redirect your user to the Etsy authorization page. If the user grants access, Etsy will send back a request with an authorization code and the nonce (state).
-```curl
-https://www.example.com/some/location?
-      code=bftcubu-wownsvftz5kowdmxnqtsuoikwqkha7_4na3igu1uy-ztu1bsken68xnw4spzum8larqbry6zsxnea4or9etuicpra5zi
-      &state=superstate
-```
-
-It is up to you to validate the nonce. If they do not match you should discard the response.
-
-For more information on Etsy's response, check out the [documentation here](https://developers.etsy.com/documentation/essentials/authentication#step-2-grant-access).
-
-The final step is to get the access token for the user. To do this you will need to make a request using the code that was just returned by Etsy. You will also need to pass in the same callback URL as the first request and the verifier used to generate the PKCE code challenge.
-```php
-[$access_token, $refresh_token] = $client->requestAccessToken(
-  $redirect_uri,
-  $code,
-  $verifier
-);
-```
-
-You'll be provided with both an access token and a refresh token. The access token has a valid duration of 3600 seconds (1 hour). Save both of these for late use.
-
-#### Refreshing your token
-
-You can refresh your authorization token (even after it has expired) using the refresh token that was previously provided. This will provide you with a new valid access token and another refresh token.
+### 2. Make Your First Request
 
 ```php
-[$access_token, $refresh_token] = $client->refreshAccessToken($refresh_token);
-```
-
-The [Etsy documentation](https://developers.etsy.com/documentation/essentials/authentication#requesting-a-refresh-oauth-token) states that refreshed access tokens have a duration of 86400 seconds (24 hours) but on testing they appear to only remain valid for up 3600 seconds (1 hour).
-
-#### Exchanging legacy OAuth 1.0 token for OAuth 2.0 token
-If you previously used v2 of the Etsy API and still have valid authorization tokens for your users, you may swap these over for valid OAuth2 tokens.
-```php
-[$access_token, $refresh_token] = $client->exchangeLegacyToken($legacy_token);
-```
-
-This will provide you with a brand new set of OAuth2 access and refresh tokens.
-
-### Basic use
-
-Create a new instance of the Etsy class using your App API key, app shared secret and a user's access token. **You must always initialize the Etsy resource before calling any resources**.
-
-```php
-use Etsy\Etsy;
 use Etsy\Resources\User;
 
-$etsy = new Etsy($apiKey, $sharedSecret, $accessToken);
-
-// Get the authenticated user.
+// Get authenticated user
 $user = User::me();
+echo "Hello, {$user->first_name}!\n";
 
-// Get the users shop.
+// Get user's shop
 $shop = $user->shop();
+echo "Shop: {$shop->shop_name}\n";
 ```
 
-#### Resources
-Most calls will return a `Resource`. Resources contain a number of methods that streamline your interaction with the Etsy API.
-```php
-// Get a Listing Resource
-$listing = \Etsy\Resources\Listing::get($shopId);
-```
+### 3. Work with Resources
 
-Resources contain the API response from Etsy as properties.
 ```php
-$listingTitle = $listing->title;
-```
+use Etsy\Resources\Listing;
 
-##### Associations
-Resources will return associations as their respective Resource when appropriate. For example the bellow call will return the `shop` property as an instance of `Etsy\Resources\Shop`.
-```php
-$shop = $listing->shop;
-```
+// Get a listing
+$listing = Listing::get($listingId);
+echo "Title: {$listing->title}\n";
+echo "Price: \${$listing->price->amount / 100}\n";
 
-##### `toJson`
-The `toJson` method will return the Resource as a JSON encoded object.
-```php
-$json = $listing->toJson();
-```
+// Update listing
+$listing->title = "Updated Title";
+$listing->save();
 
-##### `toArray`
-The `toArray` method will return the Resource as an array.
-```php
-$array = $listing->toArray();
-```
-
-#### Collections
-When there is more than one result a collection will be returned.
-```php
-$reviews = Review::all();
-```
-
-Results are stored as an array of `Resource` on the `data` property of the collection.
-```php
-$firstReview = $reviews->data[0];
-```
-
-Collections contain a handful of useful methods.
-
-##### `first`
-Get the first item in the collection.
-```php
-$firstReview = $reviews->first();
-```
-
-##### `count`
-Get the number of results in the collection. Not be confused with the `count` property which displays the number of results in a full Etsy resource.
-```php
-$count = $reviews->count();
-```
-
-##### `append`
-Append a property to each item in the collection.
-```php
-$reviews->append(['shop_id' => $shopId]);
-```
-
-##### `paginate`
-Most Etsy methods are capped at 100 results per call. You can use the `paginate` method to get more results than this (up to 500 results).
-```php
-// Get 100 results using pagination.
-foreach($reviews->paginate(200) as $review) {
-  ...
+// Get shop listings
+$listings = Listing::allByShop($shopId, ['limit' => 25]);
+foreach ($listings->data as $listing) {
+    echo "{$listing->title}\n";
 }
 ```
 
-##### `toJson`
-Returns the items in the collection as an array of JSON strings.
-```php
-$jsonArray = $reviews->toJson();
-```
+## Authentication
 
-#### Direct Requests
-You can make direct requests to the Etsy API using the static `$client` property of the Etsy class.
+The SDK uses **OAuth 2.0 with PKCE** for authentication. 
+
+### Quick OAuth Setup
+
+1. Register your app at [`developers.etsy.com/register`](https://www.etsy.com/developers/register)
+2. Get your Client ID and Shared Secret
+3. Implement the OAuth flow:
 
 ```php
-$response = Etsy::$client->get(
-  "/application/listings/active",
-  [
-    "limit" => 25
-  ]
+use Etsy\OAuth\Client;
+
+// Step 1: Initialize OAuth client
+$client = new Client($clientId, $sharedSecret);
+
+// Step 2: Generate PKCE code
+[$verifier, $codeChallenge] = $client->generateChallengeCode();
+$_SESSION['pkce_verifier'] = $verifier;
+
+// Step 3: Generate nonce for CSRF protection
+$nonce = $client->createNonce();
+$_SESSION['oauth_nonce'] = $nonce;
+
+// Step 4: Redirect user to Etsy
+$authUrl = $client->getAuthorizationUrl(
+    $redirectUri,
+    ['listings_r', 'listings_w', 'shops_r'],  // Required scopes
+    $codeChallenge,
+    $nonce
 );
+header("Location: {$authUrl}");
 ```
 
-If you still want to use the Resources classes you can convert the response into a `Resource`. Pass the response from the client as the first parameter and the name of the resource as the second. If the response is an array then a `Collection` will be returned.
+In your callback handler:
 
 ```php
-$listings = Etsy::getResource(
-  Etsy::$client->get("/application/listings/active"),
-  'Listing'
-);
-```
-
-### File Uploads
-
-Etsy listings support uploads for files, images and videos depending on the Listing type. The SDK includes ***basic*** support for uploading files.
-
-#### Images
-To upload an image you need to pass the image data under the `image` parameter on your request as if it was prepared for multipart form-data.
-
-```php
-$data = [
-  'image' => [
-    'content' => fopen('./path-to-image.jpg')
-  ]
-];
-$image = ListingImage::create(
-  $shopId,
-  $listingId,
-  $data
-);
-```
-
-For convenience you can just include a path or an external URL and the SDK will handle ***basic*** reading of the file.
-
-```php
-$data = [
-  'image' => './path-to-image.jpg'
-];
-```
-
-#### Other files
-Video and file uploads work the same way but these also require a `name` parameter on the upload request. This name just represents the name of the file to upload.
-
-```php
-ListingVideo::create(
-  $shopId,
-  $listingId,
-  [
-    'video' => './path-to-video.mp4',
-    'name' => $fileName
-  ]
+// Step 5: Exchange code for tokens
+[$accessToken, $refreshToken] = $client->requestAccessToken(
+    $redirectUri,
+    $_GET['code'],
+    $_SESSION['pkce_verifier']
 );
 
-ListingFile::create(
-  $shopId,
-  $listingId,
-  [
-    'file' => './downloadable-template.pdf',
-    'name' => $fileName
-  ]
-);
+// Store tokens securely
+$_SESSION['etsy_access_token'] = $accessToken;
+$_SESSION['etsy_refresh_token'] = $refreshToken;
 ```
 
-### Instance Methods
-Most of the SDK is built around calling static methods on the different Etsy resources. For convenience some resources contain instance methods. These are designed to streamline interaction with the SDK.
+**📖 [Complete Authentication Guide](docs/AUTHENTICATION.md)** - OAuth 2.0, token management, scopes, security
 
-#### Save method
-Many resources contain a `save()` method which is a convenient shortcut for a patch request. In most cases the current data will be compared against the values of the `_originalState` property on the Resource and if no data has been changed the patch request will be skipped.
+## Core Concepts
+
+### Resources
+
+Resources represent Etsy entities (Listings, Shops, Users, etc.). Each resource provides static and instance methods:
 
 ```php
-$listing = \Etsy\Resources\Listing::get($listingId);
+use Etsy\Resources\Listing;
 
-# Update listing title.
-$listing->title = 'Updated title';
+// Static methods - fetch resources
+$listing = Listing::get($listingId);
+$listings = Listing::all(['limit' => 25]);
+$shopListings = Listing::allByShop($shopId);
+
+// Instance methods - work with a specific resource
+$listing->save();                    // Save changes
+$images = $listing->images();        // Get related resources
+$listing->uploadImage($path, [...]);  // Upload file
+```
+
+**📖 [API Reference](docs/API_REFERENCE.md)** - All 32 resources with complete method documentation
+
+### Collections
+
+Multiple resources are returned as Collections with helpful methods:
+
+```php
+$listings = Listing::all();
+
+// Access data
+$firstListing = $listings->first();
+$count = $listings->count();
+
+// Pagination (for Listing, Shop, Review)
+foreach ($listings->paginate(200) as $listing) {
+    // Automatically fetches multiple pages
+}
+
+// Manipulation
+$listings->append(['custom_field' => 'value']);
+$jsonArray = $listings->toJson();
+```
+
+**📖 [Collections Guide](docs/COLLECTIONS.md)** - Working with collections, pagination, and bulk operations
+
+### Change Tracking
+
+The SDK automatically tracks changes and only sends modified data:
+
+```php
+$listing = Listing::get($listingId);
+
+// Modify properties
+$listing->title = "New Title";
+$listing->description = "New Description";
+
+// Only sends changed fields
 $listing->save();
 ```
 
-#### Other methods
-Review each Resource to better understand the methods available. There are some examples below of methods available to the ***Listing*** resource.
+## Common Tasks
+
+### Managing Listings
 
 ```php
-$listing->images(); // Get all images for the listing.
-$listing->uploadImage($imageData); // Upload a new image.
-$listing->inventory(); // Get the listing inventory.
-$listing->translation('en'); // Get the English translation for the listing.
+use Etsy\Resources\Listing;
+
+// Create listing
+$listing = Listing::create($shopId, [
+    'quantity' => 10,
+    'title' => 'Handmade Ceramic Mug',
+    'description' => 'Beautiful handcrafted...',
+    'price' => 24.99,
+    'who_made' => 'i_did',
+    'when_made' => '2020_2023',
+    'taxonomy_id' => 1234,
+    'shipping_profile_id' => 5678,
+    'tags' => ['ceramic', 'mug', 'handmade']
+]);
+
+// Upload images
+$listing->uploadImage('./photo1.jpg', ['rank' => 1]);
+$listing->uploadImage('./photo2.jpg', ['rank' => 2]);
+
+// Update listing
+$listing->title = "Updated Title";
+$listing->save();
+
+// Get listings
+$allListings = Listing::allByShop($shopId);
+$activeListings = Listing::allActiveByShop($shopId);
 ```
+
+### Processing Orders
+
+```php
+use Etsy\Resources\Receipt;
+
+// Get recent orders
+$receipts = Receipt::all($shopId, [
+    'min_created' => strtotime('-7 days'),
+    'was_paid' => true,
+    'limit' => 100
+]);
+
+foreach ($receipts->data as $receipt) {
+    // Get items
+    $transactions = $receipt->transactions();
+    
+    // Create shipment
+    $receipt->shipment([
+        'tracking_code' => 'TRACK123',
+        'carrier_name' => 'USPS'
+    ]);
+    
+    // Mark shipped
+    $receipt->was_shipped = true;
+    $receipt->save();
+}
+```
+
+### Managing Inventory
+
+```php
+use Etsy\Resources\{Listing, ListingInventory};
+
+// Update inventory
+$inventory = ListingInventory::get($listingId);
+// Modify inventory...
+ListingInventory::update($listingId, $inventoryData);
+
+// Low stock alert
+$listings = Listing::allByShop($shopId);
+foreach ($listings->data as $listing) {
+    if ($listing->quantity < 5) {
+        echo "Low stock: {$listing->title} ({$listing->quantity})\n";
+    }
+}
+```
+
+### Uploading Files
+
+```php
+// Images
+$listing->uploadImage('./path/image.jpg', [
+    'rank' => 1,
+    'alt_text' => 'Product front view'
+]);
+
+// Videos
+$listing->uploadVideo('./path/video.mp4', 'demo.mp4');
+
+// Downloadable files
+$listing->uploadFile('./path/file.pdf', 'Template.pdf');
+```
+
+**📖 [File Upload Guide](docs/FILE_UPLOADS.md)** - Images, videos, and downloadable files
+
+## Documentation
+
+### Complete Guides
+
+- **[Authentication](docs/AUTHENTICATION.md)** - OAuth 2.0 setup, token management, scopes, security
+- **[API Reference](docs/API_REFERENCE.md)** - All 32 resources with methods, parameters, examples
+- **[Collections](docs/COLLECTIONS.md)** - Working with collections, pagination, bulk operations
+- **[File Uploads](docs/FILE_UPLOADS.md)** - Images, videos, and downloadable files
+- **[Advanced Usage](docs/ADVANCED_USAGE.md)** - Direct API requests, custom configurations, performance
+- **[Examples](docs/EXAMPLES.md)** - Real-world scenarios and complete workflows
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Migration Guide](docs/MIGRATION_GUIDE.md)** - Upgrading between versions
+- **[Architecture](docs/ARCHITECTURE.md)** - How the SDK works internally
+
+### Available Resources
+
+The SDK provides 32 resource classes covering all Etsy API v3 endpoints:
+
+**Shop Management**: Shop, ShopSection, ProductionPartner, ProcessingProfile  
+**Listings**: Listing, ListingImage, ListingVideo, ListingFile, ListingInventory, ListingProduct, ListingProperty, ListingTranslation, ListingVariationImage, ListingOffering  
+**Orders**: Receipt, Transaction, Payment, Shipment  
+**Shipping**: ShippingProfile, ShippingDestination, ShippingUpgrade, ShippingCarrier  
+**Policies**: ReturnPolicy, HolidayPreference  
+**Reviews**: Review  
+**Users**: User, UserAddress  
+**Taxonomies**: SellerTaxonomy, SellerTaxonomyProperty, BuyerTaxonomy, BuyerTaxonomyProperty  
+**Financial**: LedgerEntry
+
+## Advanced Features
+
+### Direct API Requests
+
+Access any endpoint directly:
+
+```php
+use Etsy\Etsy;
+
+$etsy = new Etsy($clientId, $sharedSecret, $accessToken);
+
+// Make custom request
+$response = Etsy::$client->get("/application/shops/{$shopId}/stats", [
+    'start_date' => '2024-01-01',
+    'end_date' => '2024-12-31'
+]);
+
+// Convert to resource
+$shop = Etsy::getResource($response, 'Shop');
+```
+
+### Configuration Options
+
+```php
+// Enable 404 exceptions
+$etsy = new Etsy($clientId, $sharedSecret, $accessToken, [
+    '404_error' => true  // Throw exception instead of returning null
+]);
+```
+
+**📖 [Advanced Usage Guide](docs/ADVANCED_USAGE.md)** - Direct requests, configurations, performance optimization
+
+## Version Information
+
+- **Current Version**: 1.2.0
+- **PHP Requirement**: ^8.0
+- **API Version**: Etsy API v3
+- **License**: MIT
+
+### Recent Changes (v1.2.0)
+
+- **Breaking**: Shared secret now required in Client and Etsy constructors
+- Fixed: Listing variation image return type
+- See [CHANGELOG.md](CHANGELOG.md) for full history
+- See [Migration Guide](docs/MIGRATION_GUIDE.md) for upgrade instructions
+
+## Testing
+
+Test your connection:
+
+```php
+use Etsy\OAuth\Client;
+
+$client = new Client($clientId, $sharedSecret);
+$appId = $client->ping();
+
+if ($appId) {
+    echo "Connected! Application ID: {$appId}\n";
+}
+```
+
+## Support & Resources
+
+### Getting Help
+
+- **📖 [Documentation](docs/)** - Comprehensive guides and references
+- **🐛 [Issues](https://github.com/rhysnhall/etsy-php-sdk/issues)** - Report bugs or request features
+- **💬 [Email](mailto:hello@rhyshall.com)** - Contact the maintainer
+- **📚 [Etsy API Docs](https://developers.etsy.com/documentation)** - Official API documentation
+
+### Quick Support Checklist
+
+Before opening an issue:
+
+1. Check [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
+2. Review [Examples](docs/EXAMPLES.md) for similar use cases
+3. Verify you're using the latest version
+4. Test with the `ping()` method
+5. Check Etsy API status
+
+When reporting issues, include:
+- SDK version (composer show rhysnhall/etsy-php-sdk)
+- PHP version (php -v)
+- Error messages and stack traces
+- Code sample demonstrating the issue
+- Expected vs actual behavior
+
+## Contributing
+
+Contributions are welcome! Here's how to help:
+
+1. **Report Bugs**: Open an issue with details and reproduction steps
+2. **Suggest Features**: Describe your use case and proposed solution
+3. **Submit PRs**: Fork, create a branch, make changes, and submit
+4. **Improve Docs**: Help make documentation clearer
+
+Before opening a pull request:
+- Discuss the proposed changes via GitHub issue or email
+- Follow existing code style and conventions
+- Test your changes thoroughly
+- Update documentation if needed
+
+## License
+
+This project is licensed under the MIT License - see [LICENSE.md](LICENSE.md) for details.
+
+## Credits
+
+Created and maintained by [Rhys Hall](https://github.com/rhysnhall)
+
+Special thanks to all [contributors](https://github.com/rhysnhall/etsy-php-sdk/graphs/contributors).
 
 ---
 
-Full documentation will be available soon (or so I keep saying). Email [hello@rhyshall.com](mailto:hello@rhyshall.com) for any assistance.
+**Note**: This SDK is not officially affiliated with Etsy, Inc. It is an independent open-source project that provides a convenient PHP interface to the Etsy API v3.
 
-## Contributing
-Help improve this SDK by contributing.
-
-Before opening a pull request, please first discuss the proposed changes via Github issue or <a href="mailto:hello@rhyshall.com">email</a>.
-
-## License
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/rhysnhall/etsy-php-sdk/blob/master/LICENSE.md) file for details
+For official Etsy API documentation, visit [`developers.etsy.com`](https://developers.etsy.com).
