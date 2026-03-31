@@ -1,4 +1,66 @@
 # Changelog
+
+## v1.3.0
+
+This updates makes some major changes to how personalizations are handled in the Listing resource. For full details on what has changed refer to Etsy's [Multi Personalization Migration Guide](https://developers.etsy.com/documentation/tutorials/personalization-migration/).
+
+### Changes
+The `personalization_is_required`, `personalization_char_count_max` and `personalization_instructions` properties have been removed from the Listing resource `save` method. You can still update these fields up until Etsy removes them view the manual `update` method.
+
+```php
+// This will no longer work
+$listing->personalization_instructions = 'test';
+$listing->personalization_char_count_max = 256;
+$listing->personalization_is_required = true;
+
+// This will continue to work until April 9th, 2026.
+\Etsy\Resources\Listing::update(
+  $shopId,
+  $listingId,
+  [
+    'personalization_instructions' => 'test',
+    'personalization_char_count_max' => 256,
+    'personalization_is_required' => true
+  ]
+);
+```
+
+Moving forward you should be managing listing personalizations via the new ListingPersonalization [endpoints](https://developers.etsy.com/documentation/reference#tag/ShopListing-Personalization) and resource within the SDK.
+
+There are three ways to get a listings personalization settings.
+```php
+// Via the Listing resource when initially getting the listing..
+$listing = \Etsy\Resources\Listing::get($shopId, $listingId, ['includes' => 'personalization']);
+$personalization = $listing->personalization;
+
+// Via the Listing resource after you have already gotten the listing.
+$personalization = $listing->personalization();
+
+// With the ListingPersonalization resource.
+$personalization = \Etsy\Resources\ListingPersonalization::get($shopId, $listingId);
+```
+
+You can update the listing personalization via the resource `update` or `save` methods depending on your use case.
+```php
+// Update method
+\Etsy\Resources\ListingPersonalization::update(
+  $shopId, 
+  $listingId,
+  [
+    'personalization_questions' => $questions
+  ]
+);
+
+// Save method
+$personalization->personalization_questions = $questions;
+$personalization->save();
+```
+
+Delete listing personalization data with the `delete` method.
+```php
+\Etsy\Resources\ListingPersonalization::delete($shopId, $listingId);
+```
+
 ## v1.2.0
 Added support for the new Etsy request header changes. The `x-api-key` header must now include your app's shared secret. The new header format is `x-api-key: keystring:secret`, instead of the previous `x-api-key: keystring`.
 

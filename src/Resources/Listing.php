@@ -14,7 +14,8 @@ use Etsy\Resources\{
   ListingVariationImage,
   ListingInventory,
   ListingProduct,
-  ListingTranslation
+  ListingTranslation,
+  ListingPersonalization
 };
 
 /**
@@ -50,9 +51,6 @@ class Listing extends Resource {
     'when_made',
     'featured_rank',
     'is_personalizable',
-    'personalization_is_required',
-    'personalization_char_count_max',
-    'personalization_instructions',
     'state',
     'is_supply',
     'production_partner_ids',
@@ -67,7 +65,8 @@ class Listing extends Resource {
     "user" => "User",
     "images" => "ListingImage",
     'shipping_profile' => 'ShippingProfile',
-    'videos' => 'ListingVideo'
+    'videos' => 'ListingVideo',
+    'personalization' => 'ListingPersonalization'
   ];
 
   /**
@@ -629,6 +628,18 @@ class Listing extends Resource {
       $this->shop_id,
       $this->listing_id,
       $language
+    );
+  }
+
+  /**
+   * Get a listing personalization.
+   * 
+   * @return \Etsy\Resources\ListingPersonalization
+   */
+  public function personalization(): ?\Etsy\Resources\ListingPersonalization {
+    return ListingPersonalization::get(
+      $this->shop_id,
+      $this->listing_id
     );
   }
 
