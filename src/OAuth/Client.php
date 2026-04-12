@@ -124,6 +124,11 @@ class Client {
       return $response;
     }
     catch(\Exception $e) {
+      if(!method_exists($e, 'getResponse') || !$e->getResponse()) {
+        throw new RequestException(
+          "Request failed: {$e->getMessage()}"
+        );
+      }
       $response = $e->getResponse();
       $body = json_decode($response->getBody(), false);
       $status_code = $response->getStatusCode();
@@ -269,6 +274,11 @@ class Client {
    * @throws Etsy\Exception\OAuthException
    */
   private function handleAcessTokenError(\Exception $e) {
+    if(!method_exists($e, 'getResponse') || !$e->getResponse()) {
+      throw new OAuthException(
+        "OAuth request failed: {$e->getMessage()}"
+      );
+    }
     $response = $e->getResponse();
     $body = json_decode($response->getBody(), false);
     $status_code = $response->getStatusCode();
