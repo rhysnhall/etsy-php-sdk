@@ -2,3 +2,4 @@
 composer.lock
 /dev/.env
 /dev/.auth-state.json
+/.phpunit.result.cache

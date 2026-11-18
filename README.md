@@ -313,5 +313,15 @@ Help improve this SDK by contributing.
 
 Before opening a pull request, please first discuss the proposed changes via Github issue or <a href="mailto:hello@rhyshall.com">email</a>.
 
+### Running the tests
+The test suite uses a fake HTTP client, so it needs no Etsy credentials and makes no network requests.
+
+```
+composer install
+composer test
+```
+
+To check the SDK against the live Etsy API with your own app and shop, see [dev/README.md](dev/README.md).
+
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/rhysnhall/etsy-php-sdk/blob/master/LICENSE.md) file for details
