@@ -3,6 +3,8 @@
 namespace Etsy\Resources;
 
 use Etsy\Resource;
+use Etsy\Etsy;
+use Etsy\Collection;
 use Etsy\Resources\{
   Transaction,
   Payment,
@@ -135,7 +137,63 @@ class Receipt extends Resource {
    * @return \Etsy\Collection[\Etsy\Resources\Transaction]
    */
   public function transactions(): \Etsy\Collection {
+    // Receipts usually include their transactions. Use them rather than
+    // making another request.
+    $included = $this->_properties->transactions ?? null;
+    if(is_array($included)) {
+      $collection = new Collection('Transaction');
+      $collection->data = Etsy::createCollectionResources($included, 'Transaction');
+      $collection->count = count($collection->data);
+      $collection->next_page = false;
+      return $collection->append(['shop_id' => $this->shop_id]);
+    }
     return Transaction::allByReceipt($this->shop_id, $this->receipt_id);
+  }
+
+  /**
+   * Submit tracking information for a receipt, creating a shipment. Etsy
+   * emails the buyer each time this succeeds.
+   *
+   * @link https://developers.etsy.com/documentation/reference#operation/createReceiptShipment
+   * @param int $shop_id
+   * @param int $receipt_id
+   * @param array $data e.g. tracking_code, carrier_name, send_bcc, note_to_buyer
+   * @return \Etsy\Resources\Receipt The updated receipt.
+   */
+  public static function createShipment(
+    int $shop_id,
+    int $receipt_id,
+    array $data
+  ): ?\Etsy\Resources\Receipt {
+    $receipt = self::request(
+      "POST",
+      "/application/shops/{$shop_id}/receipts/{$receipt_id}/tracking",
+      "Receipt",
+      $data,
+      ['json' => true]
+    );
+    if($receipt) {
+      $receipt->shop_id = $shop_id;
+    }
+    return $receipt;
+  }
+
+  /**
+   * Submit tracking information for this receipt and update it with Etsy's
+   * response. Etsy emails the buyer each time this succeeds.
+   *
+   * @param array $data e.g. tracking_code, carrier_name, send_bcc, note_to_buyer
+   * @return \Etsy\Resources\Receipt
+   */
+  public function addTracking(
+    array $data
+  ): \Etsy\Resources\Receipt {
+    return $this->updateRequest(
+      "/application/shops/{$this->shop_id}/receipts/{$this->receipt_id}/tracking",
+      $data,
+      "POST",
+      ['json' => true]
+    );
   }
 
   /**
