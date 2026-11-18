@@ -122,6 +122,11 @@ class Client {
       $client = $this->createHttpClient();
       $response = $client->{$method}(self::API_URL.$uri, $opts);
       $response = json_decode($response->getBody(), false);
+      // A few endpoints return a bare JSON list. Give it the usual shape so it
+      // becomes a collection.
+      if(is_array($response)) {
+        $response = (object)['count' => count($response), 'results' => $response];
+      }
       if($response) {
         $response->uri = $uri;
       }
