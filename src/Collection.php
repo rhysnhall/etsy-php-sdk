@@ -13,8 +13,12 @@ use Etsy\Exception\SdkException;
  */
 class Collection {
 
+  /**
+   * Resources whose Etsy endpoints accept limit and offset.
+   */
   const PAGINATION_SUPPORT = [
-    "Shop", "Review", "Listing"
+    "Shop", "Review", "Listing", "Receipt", "Transaction", "LedgerEntry",
+    "ShippingDestination", "ProcessingProfile", "UserAddress"
   ];
 
   /**

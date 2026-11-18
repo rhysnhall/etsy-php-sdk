@@ -48,6 +48,29 @@ class CollectionTest extends TestCase {
     $this->assertCount(3, iterator_to_array($listings->paginate(100), false));
   }
 
+  public function testPaginateReceiptsKeepsShopIdAndFilters(): void {
+    $receipts = fn($from, $n) => ['count' => 3, 'results' => array_map(fn($i) => ['receipt_id' => $from + $i], range(0, $n - 1))];
+    $this->respond($receipts(1, 2));
+    $collection = \Etsy\Resources\Receipt::all(5, ['limit' => 2, 'was_paid' => 'true']);
+    $this->respond($receipts(3, 1));
+
+    $all = iterator_to_array($collection->paginate(), false);
+
+    $this->assertCount(3, $all);
+    $this->assertSame(5, $all[2]->shop_id, 'Appended shop_id carries to later pages.');
+    $this->assertSame('limit=2&was_paid=true&offset=2', $this->lastQuery());
+  }
+
+  public function testPaginateLedgerEntriesKeepsDateRange(): void {
+    $this->respond(['count' => 2, 'results' => [['entry_id' => 1]]]);
+    $entries = \Etsy\Resources\LedgerEntry::all(5, ['min_created' => 100, 'max_created' => 200, 'limit' => 1]);
+    $this->respond(['count' => 2, 'results' => [['entry_id' => 2]]]);
+    $this->respond(['count' => 2, 'results' => []]);
+
+    $this->assertCount(2, iterator_to_array($entries->paginate(), false));
+    $this->assertStringContainsString('min_created=100&max_created=200', $this->lastQuery());
+  }
+
   public function testPaginateIsOnlySupportedForSomeResources(): void {
     $this->respond(['count' => 0, 'results' => []]);
     $sections = ShopSection::all(5);
