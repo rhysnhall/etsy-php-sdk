@@ -41,7 +41,19 @@ class JsonEndpointsTest extends TestCase {
     $personalization->save();
 
     $this->assertLastRequest('POST', '/application/shops/5/listings/11/personalization');
+    $this->assertSame('supports_multiple_personalization_questions=true', $this->lastQuery());
     $this->assertSame(['personalization_questions' => $this->questions], $this->lastJson());
+  }
+
+  public function testPersonalizationSaveCanSendLegacyFlag(): void {
+    $this->respond(['personalization_questions' => []]);
+    $personalization = ListingPersonalization::get(5, 11);
+    $personalization->personalization_questions = $this->questions;
+    $this->respond(['personalization_questions' => $this->questions]);
+
+    $personalization->save(null, false);
+
+    $this->assertSame('supports_multiple_personalization_questions=false', $this->lastQuery());
   }
 
   public function testVariationImagesUpdateSendsJson(): void {

@@ -77,7 +77,8 @@ class ListingPersonalization extends Resource {
    * @return \Etsy\Resources\ListingPersonalization
    */
   public function save(
-    ?array $data = null
+    ?array $data = null,
+    bool $supportMultipleQuestions = true
   ): \Etsy\Resources\ListingPersonalization {
     if(!$data) {
       $data = $this->getSaveData();
@@ -85,8 +86,9 @@ class ListingPersonalization extends Resource {
     if(count($data) == 0) {
       return $this;
     }
+    $supportsMultiple = $supportMultipleQuestions ? 'true' : 'false';
     return $this->updateRequest(
-      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/personalization",
+      "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/personalization?supports_multiple_personalization_questions={$supportsMultiple}",
       $data,
       "POST",
       ['json' => true]

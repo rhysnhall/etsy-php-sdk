@@ -62,6 +62,23 @@ class ListingTest extends TestCase {
     $this->assertSame(12, $personalization->listing_id);
   }
 
+  public function testPersonalizationMethodUsesIncludedData(): void {
+    $this->respond(['listing_id' => 11, 'shop_id' => 5, 'personalization' => ['personalization_questions' => []]]);
+    $listing = Listing::get(11, ['includes' => 'Personalization']);
+    $requests = $this->client->requestCount();
+
+    $this->assertSame($listing->personalization, $listing->personalization());
+    $this->assertSame($requests, $this->client->requestCount());
+  }
+
+  public function testPersonalizationMethodFetchesWhenNotIncluded(): void {
+    $listing = new Listing(json_decode('{"listing_id": 11, "shop_id": 5}'));
+    $this->respond(['personalization_questions' => []]);
+
+    $listing->personalization();
+    $this->assertLastRequest('GET', '/application/listings/11/personalization');
+  }
+
   public function testImagesMethodStillFetches(): void {
     $listing = new Listing(json_decode('{"listing_id": 11, "shop_id": 5}'));
     $this->respond(['count' => 0, 'results' => []]);

@@ -702,6 +702,11 @@ class Listing extends Resource {
    * @return \Etsy\Resources\ListingPersonalization
    */
   public function personalization(): ?\Etsy\Resources\ListingPersonalization {
+    // Use personalization already included with the listing, if present.
+    $included = $this->_properties->personalization ?? null;
+    if($included instanceof ListingPersonalization) {
+      return $included;
+    }
     return ListingPersonalization::get(
       $this->shop_id,
       $this->listing_id
