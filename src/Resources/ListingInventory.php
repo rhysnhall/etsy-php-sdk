@@ -73,7 +73,7 @@ class ListingInventory extends Resource {
    * @param int $listing_id
    * @return void
    */
-  private function assignListingId(
+  public function assignListingId(
     int $listing_id
   ) {
     $this->listing_id = $listing_id;
