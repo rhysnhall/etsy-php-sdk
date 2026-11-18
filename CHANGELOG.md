@@ -1,5 +1,78 @@
 # Changelog
 
+## v1.4.0
+
+This update brings the SDK in line with the current Etsy Open API v3 spec. It adds support for GPSR economic operators and the new batch listing endpoints, and fixes several requests that no longer matched the API.
+
+### New features
+
+#### GPSR economic operators
+The new `EconomicOperator` resource manages a shop's manufacturer and EU responsible person records, which are used for GPSR compliance on listings. Refer to Etsy's [GPSR Economic Operators Tutorial](https://developers.etsy.com/documentation/tutorials/gpsr-economic-operators) for full details.
+
+```php
+use Etsy\Resources\EconomicOperator;
+
+// Get all economic operators for a shop.
+$operators = EconomicOperator::all($shopId);
+
+// Or via the Shop resource.
+$operators = $shop->economicOperators();
+$operator = $shop->economicOperator($operatorId);
+
+// Create an economic operator.
+$operator = EconomicOperator::create($shopId, [
+  'operator_name' => 'Acme Ltd',
+  'email' => 'compliance@example.com',
+  'first_line' => '1 Example Street',
+  'city' => 'Berlin',
+  'zip' => '10115',
+  'country_iso' => 'DE',
+  'phone' => '0301234567'
+]);
+
+// Update an economic operator. Only the fields you change are sent.
+$operator->city = 'Munich';
+$operator->save();
+```
+
+Use the `economic_operator_id` as the `gpsr_manufacturer_id` or `gpsr_responsible_person_id` on a listing. The `gpsr_*` and `ecgt_*` (EU commercial guarantee) listing fields are now sent by the Listing resource's `save` method.
+
+```php
+$listing->gpsr_manufacturer_id = $operator->economic_operator_id;
+$listing->save();
+```
+
+#### Batch listing inventory and shipping
+Get the inventory or shipping profile for up to 100 listings in a single request.
+
+```php
+$listings = \Etsy\Resources\Listing::allInventoryByIds([$listingId1, $listingId2]);
+foreach($listings->data as $listing) {
+  // Uses the included inventory. No extra request is made.
+  $inventory = $listing->inventory();
+}
+
+$listings = \Etsy\Resources\Listing::allShippingByIds([$listingId1, $listingId2]);
+$profile = $listings->data[0]->shipping_profile;
+```
+
+#### JSON request bodies
+`Resource::request()` and `Resource::updateRequest()` accept a new optional `$options` array. Pass `['json' => true]` to send the request body as JSON instead of form data.
+
+### Fixes
+- `ListingInventory::update`, `ListingPersonalization::update` and `save`, `ListingVariationImage::update` and `Shipment::create` now send JSON bodies, as Etsy requires for these endpoints.
+- `ListingPersonalization::save` now sends a `POST` request instead of `PUT`.
+- `ListingPersonalization::update` now sends `supports_multiple_personalization_questions` as `true` or `false`. Previously, passing `false` sent an empty value.
+- `ListingOffering::get` no longer calls a removed endpoint. The offering is now found on its parent listing product. The new `ListingProduct::findOffering()` method finds an offering on a product you have already fetched.
+- Listing inventory products now have their `listing_id` set.
+- Connection failures and timeouts now throw a `RequestException` (or `OAuthException` for token requests) instead of causing a fatal error. The original exception is available via `getPrevious()`.
+- Error responses that are not JSON no longer cause an error; the HTTP reason phrase is used as the message.
+- Query parameters are no longer dropped from `DELETE` requests.
+
+### Changes
+- `UserAddress::delete` is deprecated and now throws an `SdkException`, as Etsy has removed this endpoint.
+- `billing_r` and `feedback_r` have been removed from `PermissionScopes::ALL_SCOPES`, as Etsy no longer lists them.
+
 ## v1.3.0
 
 This updates makes some major changes to how personalizations are handled in the Listing resource. For full details on what has changed refer to Etsy's [Multi Personalization Migration Guide](https://developers.etsy.com/documentation/tutorials/personalization-migration/).
