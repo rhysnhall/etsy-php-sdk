@@ -251,22 +251,29 @@ class Resource {
    * @return array
    */
   public function toArray() {
-    $array = [];
-    $properties = get_object_vars($this)['_properties'];
-    foreach($properties as $property => $value) {
-      if(is_object($value)) {
-        if($value instanceof Resource) {
-          $array[$property] = $value->toArray();
-        }
-        else {
-          $array[$property] = get_object_vars($value);
-        }
-      }
-      else {
-        $array[$property] = $value;
-      }
+    return static::valueToArray(get_object_vars($this)['_properties']);
+  }
+
+  /**
+   * Recursively converts resources, collections and objects to arrays.
+   *
+   * @param mixed $value
+   * @return mixed
+   */
+  protected static function valueToArray($value) {
+    if($value instanceof Resource) {
+      return $value->toArray();
     }
-    return $array;
+    if($value instanceof Collection) {
+      $value = $value->data;
+    }
+    if(is_object($value)) {
+      $value = get_object_vars($value);
+    }
+    if(is_array($value)) {
+      return array_map([static::class, 'valueToArray'], $value);
+    }
+    return $value;
   }
 
   /**
