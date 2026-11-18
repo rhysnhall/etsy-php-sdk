@@ -41,7 +41,7 @@ class LedgerEntry extends Resource {
       "/application/shops/{$shop_id}/payment-account/ledger-entries",
       "LedgerEntry",
       $params
-    )->append(['shop_id', $shop_id]);
+    )->append(['shop_id' => $shop_id]);
   }
 
   /**
