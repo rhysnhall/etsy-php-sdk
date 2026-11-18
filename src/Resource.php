@@ -3,6 +3,7 @@
 namespace Etsy;
 
 use Etsy\Etsy;
+use Etsy\Exception\RequestException;
 
 /**
  * Base resource object.
@@ -149,20 +150,23 @@ class Resource {
    * @return Resource
    */
   protected function updateRequest(string $url, array $data, $method = "PUT", array $options = []) {
-    $result = $this->request(
-        $method,
-        $url,
-        basename(str_replace('\\', '/', get_class($this))),
-        $data,
-        $options
+    $response = Etsy::$client->{strtolower($method)}($url, $data, $options);
+    // A failed save should never pass silently, even when 404_error is off.
+    if(isset($response->error)) {
+      throw new RequestException(
+        "Received HTTP status code [" . ($response->code ?? 404) . "] with error \"{$response->error}\".",
+        $response->code ?? 404
       );
-    // Update the existing properties.
-    $properties = get_object_vars($result)['_properties'];
+    }
+    $result = Etsy::getResource($response, basename(str_replace('\\', '/', get_class($this))));
+    if(!$result instanceof Resource) {
+      // Nothing to merge (e.g. an empty response body).
+      return $this;
+    }
+    // Update the properties with the latest values from Etsy.
     $this->_originalState = $result->_originalState;
-    foreach($properties as $property => $value) {
-      if(isset($this->_properties->{$property})) {
-        $this->_properties->{$property} = $value;
-      }
+    foreach(get_object_vars($result)['_properties'] as $property => $value) {
+      $this->_properties->{$property} = $value;
     }
     return $this;
   }

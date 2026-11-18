@@ -58,6 +58,52 @@ class ResourceTest extends TestCase {
     $this->assertSame(['is_supply' => '0'], $sent);
   }
 
+  public function testSaveThrowsWhenEtsyReturnsNotFound(): void {
+    $this->respond(['listing_id' => 1, 'shop_id' => 5, 'title' => 'Mug']);
+    $listing = Listing::get(1);
+    $listing->title = 'New';
+    $this->respond(['error' => 'Listing not found'], 404);
+
+    $this->expectException(\Etsy\Exception\RequestException::class);
+    $this->expectExceptionMessage('Listing not found');
+    $listing->save();
+  }
+
+  public function testSaveRefreshesFieldsFromTheResponse(): void {
+    $this->respond(['listing_id' => 1, 'shop_id' => 5, 'title' => 'Mug', 'shop_section_id' => null]);
+    $listing = Listing::get(1);
+    $listing->title = 'New';
+    $this->respond(['listing_id' => 1, 'shop_id' => 5, 'title' => 'New', 'shop_section_id' => 42, 'updated_timestamp' => 999]);
+
+    $listing->save();
+
+    $this->assertSame(42, $listing->shop_section_id);
+    $this->assertSame(999, $listing->updated_timestamp);
+  }
+
+  public function testSaveResetsChangeTrackingAfterSaving(): void {
+    $this->respond(['listing_id' => 1, 'shop_id' => 5, 'title' => 'Mug']);
+    $listing = Listing::get(1);
+    $listing->title = 'New';
+    $this->respond(['listing_id' => 1, 'shop_id' => 5, 'title' => 'New']);
+    $listing->save();
+    $requests = $this->client->requestCount();
+
+    $listing->save();
+
+    $this->assertSame($requests, $this->client->requestCount(), 'A second save with no changes should send nothing.');
+  }
+
+  public function testSaveWithEmptyResponseKeepsTheResource(): void {
+    $this->respond(['listing_id' => 1, 'shop_id' => 5, 'title' => 'Mug']);
+    $listing = Listing::get(1);
+    $listing->title = 'New';
+    $this->client->queue(new \GuzzleHttp\Psr7\Response(204));
+
+    $this->assertSame($listing, $listing->save());
+    $this->assertSame('New', $listing->title);
+  }
+
   public function testToJsonIncludesNestedResources(): void {
     $this->respond(['products' => [[
       'product_id' => 7,
