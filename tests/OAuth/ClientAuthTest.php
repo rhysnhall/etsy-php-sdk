@@ -81,9 +81,15 @@ class ClientAuthTest extends TestCase {
   public function testTokenErrorIncludesEtsyDescription(): void {
     $this->respond(['error' => 'invalid_grant', 'error_description' => 'Refresh token expired'], 400);
 
-    $this->expectException(OAuthException::class);
-    $this->expectExceptionMessage('"invalid_grant" and message "Refresh token expired"');
-    $this->client->refreshAccessToken('old-refresh');
+    try {
+      $this->client->refreshAccessToken('old-refresh');
+      $this->fail('Expected an OAuthException.');
+    }
+    catch(OAuthException $e) {
+      $this->assertStringContainsString('"invalid_grant" and message "Refresh token expired"', $e->getMessage());
+      $this->assertSame(400, $e->getCode());
+      $this->assertNotNull($e->getPrevious());
+    }
   }
 
   public function testTokenConnectionFailureThrowsOAuthException(): void {

@@ -300,7 +300,9 @@ class Client {
       $error_msg .= " and message \"{$body->error_description}\"";
     }
     throw new OAuthException(
-      "Received HTTP status code [$status_code] {$error_msg} when requesting access token."
+      "Received HTTP status code [$status_code] {$error_msg} when requesting access token.",
+      $status_code,
+      $e
     );
   }
 
