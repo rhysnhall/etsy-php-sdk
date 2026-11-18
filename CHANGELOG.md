@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## v1.4.1
+
+This release fixes several bugs and adds full documentation. There are no breaking changes.
 
 ### Fixes
 - `ListingTranslation::save()` no longer throws a fatal error when called without arguments.
