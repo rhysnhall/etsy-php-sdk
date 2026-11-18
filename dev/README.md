@@ -34,6 +34,16 @@ They use two of your active listings. To use other public listings instead, set 
 
 **`--write`** creates a draft listing, which buyers can't see and Etsy doesn't charge for. It updates the draft's inventory and personalization (both sent as JSON), then deletes the draft. It needs the `listings_w` and `listings_d` scopes and at least one shipping profile in your shop. If the delete fails, the script prints the draft's listing ID so you can remove it from Shop Manager.
 
+## Regenerating the resource reference
+
+`docs/resources.md` is generated from the SDK source and Etsy's current OpenAPI spec. After adding or changing resource methods, run:
+
+```
+php dev/generate-resource-docs.php
+```
+
+Descriptions and groupings are set in the script. It warns about any endpoint the SDK calls that's missing from Etsy's spec, and stops if a new resource class hasn't been added to its list.
+
 ## Rotating keys
 
 - **New keystring or shared secret:** paste them into `dev/.env`, then reconnect (setup steps 5 and 6). Running `php dev/check.php` first confirms the new keys work.

@@ -1,320 +1,447 @@
 # Etsy PHP SDK
-A PHP SDK for the Etsy API v3.
 
-Proper documentation still to come. Want to write it for me? I'll buy you an iced latte.
+[![Latest version](https://img.shields.io/packagist/v/rhysnhall/etsy-php-sdk.svg)](https://packagist.org/packages/rhysnhall/etsy-php-sdk)
+[![License](https://img.shields.io/packagist/l/rhysnhall/etsy-php-sdk.svg)](LICENSE.md)
+
+A PHP SDK for the [Etsy Open API v3](https://developers.etsy.com/documentation/). It handles OAuth 2.0 authentication and wraps the API's endpoints in resource classes, so you can work with listings, orders, shipping profiles and more as PHP objects.
+
+```php
+use Etsy\Etsy;
+use Etsy\Resources\Listing;
+
+new Etsy($keystring, $sharedSecret, $accessToken);
+
+$listing = Listing::get($listingId);
+$listing->title = 'Hand-thrown stoneware mug';
+$listing->save();
+```
+
+## Contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Authentication](#authentication)
+- [Making requests](#making-requests)
+- [Resources](#resources)
+- [Collections and pagination](#collections-and-pagination)
+- [Creating, updating and deleting](#creating-updating-and-deleting)
+- [Uploading files](#uploading-files)
+- [Direct requests](#direct-requests)
+- [Error handling](#error-handling)
+- [Resource reference](#resource-reference)
+- [Upgrading](#upgrading)
+- [Contributing](#contributing)
 
 ## Requirements
-PHP 8 or greater.
 
-## Install
-Install the package using composer.
-```php
+- PHP 8.0 or later
+- An Etsy app. Register one at [Your Apps](https://www.etsy.com/developers/your-apps) to get its **keystring** and **shared secret**.
+
+## Installation
+
+```
 composer require rhysnhall/etsy-php-sdk
 ```
 
-Include the Etsy class.
+## Authentication
+
+Etsy uses OAuth 2.0 with [PKCE](https://developers.etsy.com/documentation/essentials/authentication#proof-key-for-code-exchange-pkce). A shop owner approves your app on Etsy, and you receive an access token that lets you act on their behalf. The SDK's `Etsy\OAuth\Client` handles each step.
+
+Before you start, add your callback URL to your app on [Your Apps](https://www.etsy.com/developers/your-apps). Etsy only redirects to registered URLs.
+
+### 1. Send the user to Etsy
+
+Generate a PKCE code challenge and a state value, store both in the user's session, then redirect them to Etsy:
+
 ```php
-use Etsy\Etsy;
+use Etsy\OAuth\Client;
 
-$etsy = new Etsy(
-  $client_id,
-  $shared_secret,
-  $access_token
-);
+session_start();
 
-// Do the Etsy things.
-```
+$client = new Client($keystring, $sharedSecret);
 
-## Usage
+[$verifier, $codeChallenge] = $client->generateChallengeCode();
+$state = $client->createNonce();
 
-### Authorizing your app
-The Etsy API uses OAuth 2.0 authentication. You can read more about authenticating with Etsy on their [documentation](https://developers.etsy.com/documentation/essentials/authentication).
+$_SESSION['etsy_verifier'] = $verifier;
+$_SESSION['etsy_state'] = $state;
 
-The first step in OAuth2 is to request an OAuth token. You will need an existing App API key and shared secret which you can obtain by registering an app [here](https://www.etsy.com/developers/register).
-```php
-$client = new Etsy\OAuth\Client(
-  $client_id,
-  $shared_secret
-);
-```
-
-Generate a URL to redirect the user to authorize access to your app.
-```php
 $url = $client->getAuthorizationUrl(
-  $redirect_uri,
-  $scopes,
-  $code_challenge,
-  $nonce
+  'https://example.com/etsy/callback', // your registered callback URL
+  ['listings_r', 'listings_w', 'shops_r'], // scopes
+  $codeChallenge,
+  $state
 );
+
+header("Location: {$url}");
 ```
 
-###### Redirect URI
-You must set an authorized callback URL. Check out the [Etsy documentation](https://developers.etsy.com/documentation/essentials/authentication#redirect-uris) for further information.
+### 2. Handle the callback
 
-###### Scope
-Depending on your apps requirements, you will need to specify the [permission scopes](https://developers.etsy.com/documentation/essentials/authentication#scopes) you want to authorize access for.
+Etsy redirects back to your callback URL with a `code` and the `state` you sent. Check the state matches, then exchange the code for tokens:
+
 ```php
-$scopes = ["listings_d", "listings_r", "listings_w", "profile_r"];
-```
+session_start();
 
-You can get all scopes, but it is generally recommended to only get what you need.
-```php
-$scopes = \Etsy\Utils\PermissionScopes::ALL_SCOPES;
-```
+if(isset($_GET['error'])) {
+  exit("Authorization failed: {$_GET['error']}");
+}
+if(!hash_equals($_SESSION['etsy_state'] ?? '', $_GET['state'] ?? '')) {
+  exit('Invalid state.');
+}
 
-###### Code challenge
-You'll need to generate a [PKCE code challenge](https://developers.etsy.com/documentation/essentials/authentication#proof-key-for-code-exchange-pkce) and save this along with the verifier used to generate the challenge. You are welcome to generate your own, or let the SDK do this for you.
-```php
-[$verifier, $code_challenge] = $client->generateChallengeCode();
-```
+$client = new Client($keystring, $sharedSecret);
 
-###### Nonce
-The nonce is a single use token used for CSRF protection. You can use any token you like but it is recommended to let the SDK generate one for you each time you authorize a user. Save this for verifying the response later on.
-```php
-$nonce = $client->createNonce();
-```
-
-
-The URL will redirect your user to the Etsy authorization page. If the user grants access, Etsy will send back a request with an authorization code and the nonce (state).
-```curl
-https://www.example.com/some/location?
-      code=bftcubu-wownsvftz5kowdmxnqtsuoikwqkha7_4na3igu1uy-ztu1bsken68xnw4spzum8larqbry6zsxnea4or9etuicpra5zi
-      &state=superstate
-```
-
-It is up to you to validate the nonce. If they do not match you should discard the response.
-
-For more information on Etsy's response, check out the [documentation here](https://developers.etsy.com/documentation/essentials/authentication#step-2-grant-access).
-
-The final step is to get the access token for the user. To do this you will need to make a request using the code that was just returned by Etsy. You will also need to pass in the same callback URL as the first request and the verifier used to generate the PKCE code challenge.
-```php
-[$access_token, $refresh_token] = $client->requestAccessToken(
-  $redirect_uri,
-  $code,
-  $verifier
+$tokens = $client->requestAccessToken(
+  'https://example.com/etsy/callback', // must match step 1
+  $_GET['code'],
+  $_SESSION['etsy_verifier']
 );
+
+$accessToken = $tokens['access_token'];
+$refreshToken = $tokens['refresh_token'];
 ```
 
-You'll be provided with both an access token and a refresh token. The access token has a valid duration of 3600 seconds (1 hour). Save both of these for late use.
+Store both tokens. The access token lasts **1 hour**; the refresh token lasts **90 days**.
 
-#### Refreshing your token
+### Refreshing the access token
 
-You can refresh your authorization token (even after it has expired) using the refresh token that was previously provided. This will provide you with a new valid access token and another refresh token.
+Use the refresh token to get a new access token. This works even after the access token has expired. Store the refresh token returned with it for next time.
 
 ```php
-[$access_token, $refresh_token] = $client->refreshAccessToken($refresh_token);
+$tokens = $client->refreshAccessToken($refreshToken);
 ```
 
-The [Etsy documentation](https://developers.etsy.com/documentation/essentials/authentication#requesting-a-refresh-oauth-token) states that refreshed access tokens have a duration of 86400 seconds (24 hours) but on testing they appear to only remain valid for up 3600 seconds (1 hour).
+### Scopes
 
-#### Exchanging legacy OAuth 1.0 token for OAuth 2.0 token
-If you previously used v2 of the Etsy API and still have valid authorization tokens for your users, you may swap these over for valid OAuth2 tokens.
+Request only the [scopes](https://developers.etsy.com/documentation/essentials/authentication#scopes) your app needs. The [resource reference](docs/resources.md) lists the scope each method requires. `Etsy\Utils\PermissionScopes::ALL_SCOPES` contains every scope if you need them all.
+
+To see which scopes a token has:
+
 ```php
-[$access_token, $refresh_token] = $client->exchangeLegacyToken($legacy_token);
+$etsy = new Etsy($keystring, $sharedSecret, $accessToken);
+$scopes = $etsy->scopes(); // e.g. ['listings_r', 'shops_r']
 ```
 
-This will provide you with a brand new set of OAuth2 access and refresh tokens.
+### Legacy OAuth 1.0 tokens
 
-### Basic use
+If you have OAuth 1.0 tokens from Etsy's v2 API, exchange them for OAuth 2.0 tokens:
 
-Create a new instance of the Etsy class using your App API key, app shared secret and a user's access token. **You must always initialize the Etsy resource before calling any resources**.
+```php
+$tokens = $client->exchangeLegacyToken($legacyToken);
+```
+
+## Making requests
+
+Create an `Etsy` instance with your app's keystring and shared secret and the user's access token. This must happen before you use any resource class.
 
 ```php
 use Etsy\Etsy;
-use Etsy\Resources\User;
+use Etsy\Resources\{User, Shop};
 
-$etsy = new Etsy($apiKey, $sharedSecret, $accessToken);
+$etsy = new Etsy($keystring, $sharedSecret, $accessToken, [
+  '404_error' => true, // recommended; see Error handling
+]);
 
-// Get the authenticated user.
-$user = User::me();
-
-// Get the users shop.
-$shop = $user->shop();
+$me = User::me(); // ->user_id and ->shop_id of the authenticated user
+$shop = Shop::get($me->shop_id);
+$listings = $shop->activeListings(['limit' => 25]);
 ```
 
-#### Resources
-Most calls will return a `Resource`. Resources contain a number of methods that streamline your interaction with the Etsy API.
+The fourth argument is optional config:
+
+| Option | Default | Description |
+|---|---|---|
+| `404_error` | `false` | Throw a `RequestException` when Etsy returns 404. See [Error handling](#error-handling). |
+
+Some endpoints are public and only need your app's keys. For those, you can leave out the access token:
+
 ```php
-// Get a Listing Resource
-$listing = \Etsy\Resources\Listing::get($shopId);
+$etsy = new Etsy($keystring, $sharedSecret);
+$listings = Listing::all(['keywords' => 'stoneware mug']);
 ```
 
-Resources contain the API response from Etsy as properties.
+## Resources
+
+Requests return resource objects from the `Etsy\Resources` namespace, such as `Listing`, `Shop` and `Receipt`. Etsy's response fields are available as properties:
+
 ```php
-$listingTitle = $listing->title;
+$listing = Listing::get($listingId);
+
+echo $listing->title;
+echo $listing->state;      // e.g. "active"
+echo $listing->price->amount / $listing->price->divisor;
 ```
 
-##### Associations
-Resources will return associations as their respective Resource when appropriate. For example the bellow call will return the `shop` property as an instance of `Etsy\Resources\Shop`.
-```php
-$shop = $listing->shop;
-```
+Property names aren't case-sensitive, and missing properties return `null`.
 
-##### `toJson`
-The `toJson` method will return the Resource as a JSON encoded object.
-```php
-$json = $listing->toJson();
-```
+### Associations
 
-##### `toArray`
-The `toArray` method will return the Resource as an array.
-```php
-$array = $listing->toArray();
-```
+Related objects in a response are returned as resources too. Request them with Etsy's `includes` parameter where an endpoint supports it:
 
-#### Collections
-When there is more than one result a collection will be returned.
 ```php
-$reviews = Review::all();
-```
+$listing = Listing::get($listingId, ['includes' => 'Images']);
 
-Results are stored as an array of `Resource` on the `data` property of the collection.
-```php
-$firstReview = $reviews->data[0];
-```
-
-Collections contain a handful of useful methods.
-
-##### `first`
-Get the first item in the collection.
-```php
-$firstReview = $reviews->first();
-```
-
-##### `count`
-Get the number of results in the collection. Not be confused with the `count` property which displays the number of results in a full Etsy resource.
-```php
-$count = $reviews->count();
-```
-
-##### `append`
-Append a property to each item in the collection.
-```php
-$reviews->append(['shop_id' => $shopId]);
-```
-
-##### `paginate`
-Most Etsy methods are capped at 100 results per call. You can use the `paginate` method to get more results than this (up to 500 results).
-```php
-// Get 100 results using pagination.
-foreach($reviews->paginate(200) as $review) {
-  ...
+foreach($listing->images as $image) { // ListingImage resources
+  echo $image->url_570xN;
 }
 ```
 
-##### `toJson`
-Returns the items in the collection as an array of JSON strings.
-```php
-$jsonArray = $reviews->toJson();
-```
+Reading the property uses the included data. Calling the method of the same name, such as `$listing->images()`, always makes a new request.
 
-#### Direct Requests
-You can make direct requests to the Etsy API using the static `$client` property of the Etsy class.
+### Instance methods
+
+Resources have shortcut methods for related requests, so you don't need to pass IDs around:
 
 ```php
-$response = Etsy::$client->get(
-  "/application/listings/active",
-  [
-    "limit" => 25
-  ]
-);
+$shop = Shop::get($shopId);
+
+$sections = $shop->sections();
+$receipts = $shop->receipts(['limit' => 50]);
+$profiles = $shop->shippingProfiles();
+
+$listing = Listing::get($listingId);
+$images = $listing->images();
+$inventory = $listing->inventory();
+$german = $listing->translation('de');
 ```
 
-If you still want to use the Resources classes you can convert the response into a `Resource`. Pass the response from the client as the first parameter and the name of the resource as the second. If the response is an array then a `Collection` will be returned.
+The [resource reference](docs/resources.md) lists every method.
+
+### Converting to arrays and JSON
+
+```php
+$array = $listing->toArray();
+$json = $listing->toJson();
+```
+
+## Collections and pagination
+
+Methods that return more than one item return an `Etsy\Collection`. The resources are in its `data` property:
+
+```php
+$reviews = $shop->reviews();
+
+foreach($reviews->data as $review) {
+  echo $review->rating;
+}
+
+$first = $reviews->first(); // first resource, or false if empty
+$count = $reviews->count(); // number of resources in this collection
+$total = $reviews->count;   // Etsy's total number of matching results
+```
+
+### Pagination
+
+Etsy returns 25 results per request by default and at most 100. Set `limit` and `offset` to page manually, or use `paginate()` to iterate across pages automatically:
+
+```php
+$listings = Listing::allActiveByShop($shopId, ['limit' => 100]);
+
+foreach($listings->paginate(300) as $listing) {
+  // Fetches further pages as needed.
+}
+```
+
+`paginate($results)` keeps fetching pages until at least `$results` items have been returned (up to 500) or there are no more pages. It's available for `Listing`, `Shop` and `Review` collections, and throws an `SdkException` for other resources.
+
+### Other collection methods
+
+```php
+// Set a property on every resource in the collection.
+$reviews->append(['shop_id' => $shopId]);
+
+// An array of JSON strings, one per resource.
+$json = $reviews->toJson();
+```
+
+## Creating, updating and deleting
+
+Static methods take the IDs and data Etsy expects. The field names are Etsy's; see each endpoint in the [resource reference](docs/resources.md) for what it accepts.
+
+```php
+use Etsy\Resources\{Listing, ShopSection};
+
+$section = ShopSection::create($shopId, ['title' => 'Mugs']);
+
+$listing = Listing::create($shopId, [
+  'quantity' => 1,
+  'title' => 'Stoneware mug',
+  'description' => 'Hand-thrown and glazed.',
+  'price' => 32.00,
+  'who_made' => 'i_did',
+  'when_made' => 'made_to_order',
+  'taxonomy_id' => $taxonomyId,
+  'shipping_profile_id' => $shippingProfileId,
+]); // created as a draft; see createDraftListing in the reference for all fields
+
+Listing::update($shopId, $listing->listing_id, ['state' => 'active']);
+
+Listing::delete($listingId); // returns true on success
+```
+
+### Saving changes to a resource
+
+Many resources have a `save()` method. Change properties, then call `save()`:
+
+```php
+$listing = Listing::get($listingId);
+$listing->title = 'Stoneware mug, speckled glaze';
+$listing->description = 'Hand-thrown and finished in a speckled glaze.';
+$listing->save();
+```
+
+`save()` sends the resource's editable fields, which are listed for each resource in the [resource reference](docs/resources.md):
+
+- `Listing` and `EconomicOperator` send only the fields you changed, and skip the request if nothing changed.
+- Other resources send all of their editable fields each time.
+
+You can also pass the data to send directly: `$listing->save(['title' => 'New title'])`.
+
+### Inventory
+
+Listing inventory (products, prices, quantities and SKUs) is updated as a whole and sent as JSON:
+
+```php
+use Etsy\Resources\ListingInventory;
+
+ListingInventory::update($listingId, [
+  'products' => [[
+    'sku' => 'MUG-SPECKLED',
+    'property_values' => [],
+    'offerings' => [[
+      'price' => 32.00,
+      'quantity' => 5,
+      'is_enabled' => true,
+    ]],
+  ]],
+]);
+```
+
+Get the inventory for up to 100 of your listings in one request with `Listing::allInventoryByIds()`. See Etsy's [updateListingInventory reference](https://developers.etsy.com/documentation/reference#operation/updateListingInventory) for how products, offerings and variation properties fit together.
+
+## Uploading files
+
+Listing images, videos and digital files are uploaded as multipart form data. Pass a file path (or a URL, if PHP's `allow_url_fopen` is on), or pass a stream or string as `contents`:
+
+```php
+use Etsy\Resources\{ListingImage, ListingVideo, ListingFile};
+
+// From a path.
+ListingImage::create($shopId, $listingId, [
+  'image' => '/path/to/mug.jpg',
+  'rank' => 1,
+]);
+
+// From a stream or string.
+ListingImage::create($shopId, $listingId, [
+  'image' => ['contents' => fopen('/path/to/mug.jpg', 'r')],
+]);
+
+// Videos and files also need a name.
+ListingVideo::create($shopId, $listingId, [
+  'video' => '/path/to/mug.mp4',
+  'name' => 'mug.mp4',
+]);
+
+ListingFile::create($shopId, $listingId, [
+  'file' => '/path/to/pattern.pdf',
+  'name' => 'pattern.pdf',
+]);
+```
+
+A `Listing` has shortcuts for the same uploads:
+
+```php
+$listing->uploadImage('/path/to/mug.jpg', ['rank' => 1]);
+$listing->uploadVideo('/path/to/mug.mp4', 'mug.mp4');
+$listing->uploadFile('/path/to/pattern.pdf', 'pattern.pdf');
+```
+
+## Direct requests
+
+For anything the resource classes don't cover, use the HTTP client directly. Paths are relative to `https://api.etsy.com/v3`:
+
+```php
+$response = Etsy::$client->get('/application/listings/active', ['limit' => 25]);
+// A plain object decoded from Etsy's JSON response.
+```
+
+`post()`, `put()`, `patch()` and `delete()` work the same way. Write requests are form encoded; pass `['json' => true]` as a third argument for endpoints that expect JSON:
+
+```php
+Etsy::$client->put("/application/listings/{$listingId}/inventory", $data, ['json' => true]);
+```
+
+To turn a response into a resource (or a collection, for responses with `results`), use `Etsy::getResource()`:
 
 ```php
 $listings = Etsy::getResource(
-  Etsy::$client->get("/application/listings/active"),
+  Etsy::$client->get('/application/listings/active'),
   'Listing'
 );
 ```
 
-### File Uploads
+## Error handling
 
-Etsy listings support uploads for files, images and videos depending on the Listing type. The SDK includes ***basic*** support for uploading files.
+The SDK throws these exceptions, all in the `Etsy\Exception` namespace:
 
-#### Images
-To upload an image you need to pass the image data under the `image` parameter on your request as if it was prepared for multipart form-data.
+| Exception | Thrown when |
+|---|---|
+| `RequestException` | Etsy returns an error response, or the request fails to connect or times out. The message includes Etsy's error. For HTTP errors, `getCode()` returns the status code. |
+| `OAuthException` | A token request fails, or the client is created without a keystring or shared secret. |
+| `SdkException` | A method is used in a way the SDK or Etsy doesn't support, such as paginating a collection that doesn't support it. |
+| `ApiException` | Required input is missing, such as searching shops without a keyword. |
 
-```php
-$data = [
-  'image' => [
-    'content' => fopen('./path-to-image.jpg')
-  ]
-];
-$image = ListingImage::create(
-  $shopId,
-  $listingId,
-  $data
-);
-```
-
-For convenience you can just include a path or an external URL and the SDK will handle ***basic*** reading of the file.
+The original Guzzle exception is available from `getPrevious()`.
 
 ```php
-$data = [
-  'image' => './path-to-image.jpg'
-];
+use Etsy\Exception\RequestException;
+
+try {
+  $listing = Listing::update($shopId, $listingId, ['state' => 'active']);
+}
+catch(RequestException $e) {
+  error_log($e->getMessage()); // Received HTTP status code [400] with error "..."
+}
 ```
 
-#### Other files
-Video and file uploads work the same way but these also require a `name` parameter on the upload request. This name just represents the name of the file to upload.
+### Not found responses
+
+By default, a 404 from Etsy doesn't throw. Methods that return a single resource return `null` instead. Methods that return a collection can fail with a PHP error, so **setting `'404_error' => true` is recommended**:
 
 ```php
-ListingVideo::create(
-  $shopId,
-  $listingId,
-  [
-    'video' => './path-to-video.mp4',
-    'name' => $fileName
-  ]
-);
-
-ListingFile::create(
-  $shopId,
-  $listingId,
-  [
-    'file' => './downloadable-template.pdf',
-    'name' => $fileName
-  ]
-);
+$etsy = new Etsy($keystring, $sharedSecret, $accessToken, ['404_error' => true]);
 ```
 
-### Instance Methods
-Most of the SDK is built around calling static methods on the different Etsy resources. For convenience some resources contain instance methods. These are designed to streamline interaction with the SDK.
+With it set, a 404 throws a `RequestException` like any other error.
 
-#### Save method
-Many resources contain a `save()` method which is a convenient shortcut for a patch request. In most cases the current data will be compared against the values of the `_originalState` property on the Resource and if no data has been changed the patch request will be skipped.
+## Resource reference
 
-```php
-$listing = \Etsy\Resources\Listing::get($listingId);
+The [resource reference](docs/resources.md) documents every resource, method, endpoint and required scope. It's grouped as follows:
 
-# Update listing title.
-$listing->title = 'Updated title';
-$listing->save();
-```
+| Area | Resources |
+|---|---|
+| Users and shops | `User`, `UserAddress`, `Shop`, `ShopSection`, `HolidayPreference`, `ProductionPartner`, `EconomicOperator` |
+| Listings | `Listing`, `ListingInventory`, `ListingProduct`, `ListingOffering`, `ListingProperty`, `ListingPersonalization`, `ListingTranslation` |
+| Listing media and files | `ListingImage`, `ListingVariationImage`, `ListingVideo`, `ListingFile` |
+| Orders and payments | `Receipt`, `Transaction`, `Shipment`, `Payment`, `LedgerEntry`, `Review` |
+| Shipping, processing and returns | `ShippingProfile`, `ShippingDestination`, `ShippingUpgrade`, `ShippingCarrier`, `ProcessingProfile`, `ReturnPolicy` |
+| Taxonomy | `SellerTaxonomy`, `SellerTaxonomyProperty`, `BuyerTaxonomy`, `BuyerTaxonomyProperty` |
 
-#### Other methods
-Review each Resource to better understand the methods available. There are some examples below of methods available to the ***Listing*** resource.
+For the fields each endpoint accepts and returns, see [Etsy's API reference](https://developers.etsy.com/documentation/reference).
 
-```php
-$listing->images(); // Get all images for the listing.
-$listing->uploadImage($imageData); // Upload a new image.
-$listing->inventory(); // Get the listing inventory.
-$listing->translation('en'); // Get the English translation for the listing.
-```
+## Upgrading
 
----
-
-Full documentation will be available soon (or so I keep saying). Email [hello@rhyshall.com](mailto:hello@rhyshall.com) for any assistance.
+See the [changelog](CHANGELOG.md) for changes in each release, including anything you need to update.
 
 ## Contributing
-Help improve this SDK by contributing.
 
-Before opening a pull request, please first discuss the proposed changes via Github issue or <a href="mailto:hello@rhyshall.com">email</a>.
+Bug reports and pull requests are welcome. Before starting on a larger change, please open an issue or [email me](mailto:hello@rhyshall.com) to discuss it.
 
 ### Running the tests
-The test suite uses a fake HTTP client, so it needs no Etsy credentials and makes no network requests.
+
+The test suite uses a fake HTTP client, so it needs no Etsy credentials and makes no network requests:
 
 ```
 composer install
@@ -324,4 +451,5 @@ composer test
 To check the SDK against the live Etsy API with your own app and shop, see [dev/README.md](dev/README.md).
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/rhysnhall/etsy-php-sdk/blob/master/LICENSE.md) file for details
+
+MIT. See [LICENSE.md](LICENSE.md).

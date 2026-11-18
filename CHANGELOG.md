@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+- `ListingTranslation::save()` no longer throws a fatal error when called without arguments.
+- Included associations, such as `$listing->images` after requesting `includes`, are now returned directly instead of being fetched again.
+- `Collection::paginate()` no longer throws a fatal error when a later page fails to load, and no longer causes PHP 8.2 deprecation notices.
+- `OAuthException` for failed token requests now includes the HTTP status code and the original exception via `getPrevious()`.
+
+### Changes
+- Added `Shop::featuredListings()`. The misspelled `featuedListings()` still works but is deprecated.
+- `Listing::uploadImage()` no longer requires the `$options` argument.
+
+### Documentation
+- Rewrote the README as full documentation and added a [resource reference](docs/resources.md) covering every method, endpoint and required scope.
+
 ## v1.4.0
 
 This update brings the SDK in line with the current Etsy Open API v3 spec. It adds support for GPSR economic operators and the new batch listing endpoints, and fixes several requests that no longer matched the API.
