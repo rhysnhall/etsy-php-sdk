@@ -21,6 +21,43 @@ class ResourceTest extends TestCase {
     $this->assertSame(['amount' => 3200, 'divisor' => 100], $array['price']);
   }
 
+  private function saveListingWith(array $original, callable $change): ?array {
+    $this->respond(['listing_id' => 1, 'shop_id' => 5] + $original);
+    $listing = Listing::get(1);
+    $change($listing);
+    $requests = $this->client->requestCount();
+    $this->respond(['listing_id' => 1, 'shop_id' => 5]);
+    $listing->save();
+    return $this->client->requestCount() === $requests ? null : $this->lastForm();
+  }
+
+  public function testSaveSendsTheWholeChangedArray(): void {
+    $sent = $this->saveListingWith(['tags' => ['mug', 'blue', 'clay']], function($l) {
+      $l->tags = ['mug', 'blue', 'stoneware'];
+    });
+
+    $this->assertSame(['tags' => ['mug', 'blue', 'stoneware']], $sent);
+  }
+
+  public function testSaveSendsShrunkAndGrownArrays(): void {
+    $this->assertSame(['tags' => ['a']], $this->saveListingWith(['tags' => ['a', 'b']], fn($l) => $l->tags = ['a']));
+    $this->assertSame(['tags' => ['a', 'b', 'c']], $this->saveListingWith(['tags' => ['a', 'b']], fn($l) => $l->tags = ['a', 'b', 'c']));
+  }
+
+  public function testSaveHandlesArraysThatWereNull(): void {
+    $this->assertSame(['tags' => ['new']], $this->saveListingWith(['tags' => null], fn($l) => $l->tags = ['new']));
+  }
+
+  public function testSaveSendsNothingWhenArraysAreUnchanged(): void {
+    $this->assertNull($this->saveListingWith(['tags' => ['a', 'b'], 'title' => 'Mug'], fn($l) => $l->tags = ['a', 'b']));
+  }
+
+  public function testSaveDetectsChangesBetweenFalsyValues(): void {
+    $sent = $this->saveListingWith(['is_supply' => null], fn($l) => $l->is_supply = false);
+
+    $this->assertSame(['is_supply' => '0'], $sent);
+  }
+
   public function testToJsonIncludesNestedResources(): void {
     $this->respond(['products' => [[
       'product_id' => 7,

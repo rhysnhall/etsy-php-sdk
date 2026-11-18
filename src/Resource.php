@@ -301,32 +301,20 @@ class Resource {
   }
 
   /**
-   * Get the properties which have changed.
-   * 
-   * @param array $arrayOne
-   * @param array @arrayTwo
+   * Get the properties which have changed. A changed array is returned whole,
+   * as Etsy replaces array fields (such as tags) rather than merging them.
+   *
+   * @param array $current
+   * @param array $original
    * @return array
    */
   private function getChanged(
-    array $arrayOne, 
-    array $arrayTwo
+    array $current,
+    array $original
   ): array {
     $changed = [];
-    foreach($arrayOne as $key => $value) {
-      if(array_key_exists($key, $arrayTwo)) {
-        if(is_array($value)) {
-          $recursiveChanged = self::getChanged($arrayTwo[$key], $value);
-          if(count($recursiveChanged)) {
-            $changed[$key] = $recursiveChanged;
-          }
-        }
-        else {
-          if($value != $arrayTwo[$key]) {
-            $changed[$key] = $value;
-          }
-        }
-      }
-      else {
+    foreach($current as $key => $value) {
+      if(!array_key_exists($key, $original) || $value !== $original[$key]) {
         $changed[$key] = $value;
       }
     }
