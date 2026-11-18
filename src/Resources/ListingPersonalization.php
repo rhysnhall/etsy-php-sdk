@@ -85,7 +85,8 @@ class ListingPersonalization extends Resource {
     }
     return $this->updateRequest(
       "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/personalization",
-      $data
+      $data,
+      "POST"
     );
   }
 
