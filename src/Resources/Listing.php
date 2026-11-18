@@ -54,7 +54,20 @@ class Listing extends Resource {
     'state',
     'is_supply',
     'production_partner_ids',
-    'type'
+    'type',
+    'gpsr_manufacturer_type',
+    'gpsr_manufacturer_id',
+    'gpsr_responsible_person_type',
+    'gpsr_responsible_person_id',
+    'gpsr_serial_number',
+    'gpsr_safety_warnings',
+    'ecgt_garan_brand',
+    'ecgt_garan_years',
+    'ecgt_garan_model',
+    'ecgt_garan_guarantee_details',
+    'ecgt_other_commercial_guarantee_details',
+    'ecgt_after_sales_service_info',
+    'ecgt_software_update_details'
   ];
 
   /**
