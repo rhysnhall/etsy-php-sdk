@@ -81,6 +81,21 @@ class Client {
   }
 
   /**
+   * Guzzle timeout options. Set 'timeout' and 'connect_timeout' (in seconds,
+   * 0 for no limit) in the config to override the defaults. Uploads have no
+   * overall timeout by default, as large videos can take a while.
+   *
+   * @param bool $upload
+   * @return array
+   */
+  protected function timeouts(bool $upload = false): array {
+    return [
+      'connect_timeout' => $this->config['connect_timeout'] ?? 10,
+      'timeout' => $this->config['timeout'] ?? ($upload ? 0 : 60),
+    ];
+  }
+
+  /**
    * Sets the users API key.
    *
    * @param string $api_key
@@ -118,6 +133,7 @@ class Client {
       $opts['query'] = $args[1];
     }
     $opts['headers'] = $this->headers;
+    $opts += $this->timeouts(isset($opts['multipart']));
     try {
       $client = $this->createHttpClient();
       $response = $client->{$method}(self::API_URL.$uri, $opts);
@@ -210,7 +226,7 @@ class Client {
     // Create a GuzzleHttp client.
     $client = $this->createHttpClient();
     try {
-      $response = $client->post(self::TOKEN_URL, ['form_params' => $params]);
+      $response = $client->post(self::TOKEN_URL, ['form_params' => $params] + $this->timeouts());
       $response = json_decode($response->getBody(), false);
       return [
         'access_token' => $response->access_token,
@@ -239,7 +255,7 @@ class Client {
     // Create a GuzzleHttp client.
     $client = $this->createHttpClient();
     try {
-      $response = $client->post(self::TOKEN_URL, ['form_params' => $params]);
+      $response = $client->post(self::TOKEN_URL, ['form_params' => $params] + $this->timeouts());
       $response = json_decode($response->getBody(), false);
       return [
         'access_token' => $response->access_token,
@@ -268,7 +284,7 @@ class Client {
     // Create a GuzzleHttp client.
     $client = $this->createHttpClient();
     try {
-      $response = $client->post(self::TOKEN_URL, ['form_params' => $params]);
+      $response = $client->post(self::TOKEN_URL, ['form_params' => $params] + $this->timeouts());
       $response = json_decode($response->getBody(), false);
       return [
         'access_token' => $response->access_token,

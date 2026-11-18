@@ -100,6 +100,46 @@ class ClientRequestTest extends TestCase {
     $this->client->get('/application/listings/1');
   }
 
+  private function lastOptions(): array {
+    return end($this->client->history)['options'];
+  }
+
+  public function testRequestsHaveDefaultTimeouts(): void {
+    $this->respond();
+    $this->client->get('/application/shops/1');
+
+    $this->assertSame(10, $this->lastOptions()['connect_timeout']);
+    $this->assertSame(60, $this->lastOptions()['timeout']);
+  }
+
+  public function testUploadsHaveNoOverallTimeoutByDefault(): void {
+    $file = tempnam(sys_get_temp_dir(), 'etsy');
+    file_put_contents($file, 'video-bytes');
+    $this->respond();
+
+    $this->client->post('/application/shops/1/listings/2/videos', ['video' => $file, 'name' => 'mug.mp4']);
+
+    $this->assertSame(0, $this->lastOptions()['timeout']);
+    $this->assertSame(10, $this->lastOptions()['connect_timeout']);
+    @unlink($file);
+  }
+
+  public function testTimeoutsCanBeConfigured(): void {
+    $this->client->setConfig(['timeout' => 5, 'connect_timeout' => 2]);
+    $this->respond();
+    $this->client->get('/application/shops/1');
+
+    $this->assertSame(5, $this->lastOptions()['timeout']);
+    $this->assertSame(2, $this->lastOptions()['connect_timeout']);
+  }
+
+  public function testTokenRequestsHaveTimeouts(): void {
+    $this->respond(['access_token' => 'a', 'refresh_token' => 'r']);
+    $this->client->refreshAccessToken('r');
+
+    $this->assertSame(60, $this->lastOptions()['timeout']);
+  }
+
   public function testConnectionFailureThrowsRequestException(): void {
     $this->client->queue(new ConnectException('Could not resolve host', new Request('GET', 'x')));
 
