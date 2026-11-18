@@ -106,7 +106,7 @@ class ListingTranslation extends Resource {
    * @return \Etsy\Resources\ListingTranslation
    */
   public function save(
-    ?array $data = nul
+    ?array $data = null
   ): \Etsy\Resources\ListingTranslation {
     if(!$data) {
       $data = $this->getSaveData();
