@@ -559,7 +559,7 @@ class Listing extends Resource {
    */
   public function uploadImage(
     mixed $image,
-    array $options
+    array $options = []
   ): ?\Etsy\Resources\ListingImage {
     $options['image'] = $image;
     return ListingImage::create(

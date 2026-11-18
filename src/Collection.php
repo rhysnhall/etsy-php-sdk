@@ -43,6 +43,13 @@ class Collection {
   public $count = 0;
 
   /**
+   * Whether more pages may be available when paginating.
+   *
+   * @var bool
+   */
+  public $next_page = true;
+
+  /**
    * @var array
    */
   public $data = [];
@@ -148,7 +155,6 @@ class Collection {
     );
     $collection = Etsy::getResource($response, $this->resource);
     if(!$collection) {
-      $collection->next_page = false;
       return false;
     }
     if(count($this->_append)) {

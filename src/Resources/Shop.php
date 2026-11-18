@@ -162,14 +162,25 @@ class Shop extends Resource {
 
   /**
    * Get all featured listings for the shop.
-   * 
+   *
+   * @param array $params
+   * @return Etsy\Collection[Etsy\Resources\Listing]
+   */
+  public function featuredListings(
+    array $params = []
+  ): \Etsy\Collection {
+    return Listing::allFeaturedByShop($this->shop_id, $params);
+  }
+
+  /**
+   * @deprecated Misspelled. Use featuredListings() instead.
    * @param array $params
    * @return Etsy\Collection[Etsy\Resources\Listing]
    */
   public function featuedListings(
     array $params = []
   ): \Etsy\Collection {
-    return Listing::allFeaturedByShop($this->shop_id, $params);
+    return $this->featuredListings($params);
   }
 
   /**
