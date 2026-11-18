@@ -335,7 +335,7 @@ An order (receipt) placed with a shop.
 | `$receipt->payments()`<br>Get all payments for the receipt. | `Collection` | `Payment::allByReceipt()` |
 | `$receipt->listings(array $params = [])`<br>Get all listings for the receipt. | `Collection` | `Listing::allByReceipt()` |
 
-Fields sent by `save()`: `was_shipped`, `was_paid`.
+Fields sent by `save()`: `is_shipped`, `is_paid`, `was_shipped`, `was_paid`.
 
 Associations: `shipments` (Shipment).
 
@@ -472,7 +472,7 @@ Processing profiles (Etsy calls these readiness state definitions).
 |---|---|---|
 | `$processingProfile->save(?array $data = null)`<br>Saves updates to the current processing profile. | `ProcessingProfile` | [`PUT /shops/{shop_id}/readiness-state-definitions/{readiness_state_id}`](https://developers.etsy.com/documentation/reference#operation/updateShopReadinessStateDefinition) |
 
-Fields sent by `save()`: `readiness_state`, `min_processing_time`, `max_processing_time`, `processing_time_unit`.
+Fields sent by `save()`: `readiness_state`, `min_processing_days`, `max_processing_days`, `min_processing_time`, `max_processing_time`, `processing_time_unit`.
 
 ### ReturnPolicy
 

@@ -291,10 +291,12 @@ $listing->save();
 
 `save()` sends the resource's editable fields, which are listed for each resource in the [resource reference](docs/resources.md):
 
-- `Listing` and `EconomicOperator` send only the fields you changed, and skip the request if nothing changed.
+- `Listing`, `EconomicOperator`, `Receipt` and `ProcessingProfile` send only the fields you changed, and skip the request if nothing changed. Array fields such as `tags` are sent whole.
 - Other resources send all of their editable fields each time.
 
 You can also pass the data to send directly: `$listing->save(['title' => 'New title'])`.
+
+After saving, the resource is updated with the values Etsy returns. If Etsy rejects the change, `save()` throws a `RequestException`, including for a 404 whatever the `404_error` setting.
 
 ### Inventory
 

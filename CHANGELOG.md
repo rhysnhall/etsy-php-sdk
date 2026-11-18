@@ -5,6 +5,14 @@
 ### Fixes
 - Methods that return a collection now return an empty collection when Etsy returns a 404, instead of failing with a PHP error. Set the `404_error` option to throw a `RequestException` instead, as before.
 - `Listing::allByReturnPolicy()` and `ReturnPolicy::listings()` no longer throw a TypeError on every call.
+- `Listing::save()` and `EconomicOperator::save()` now send changed array fields (such as `tags`, `materials` and `image_ids`) correctly. Previously they could send the old values of the changed items only, which replaced the field on Etsy with the wrong data.
+- `save()` no longer throws a TypeError when Etsy returns a 404; it throws a `RequestException` with Etsy's error. After saving, every field Etsy returns is applied, including fields that were `null` before.
+- `Receipt::save()` now saves changes to `is_shipped` and `is_paid`. Previously it ignored them.
+- `ProcessingProfile::save()` now saves changes to `min_processing_days` and `max_processing_days`. Previously it ignored them.
+- `HolidayPreference::all()` no longer throws an error on Etsy's response.
+- `LedgerEntry::all()` now sets `shop_id` on each entry, so `$entry->payments()` works.
+- Personalization included with a listing (via `includes`) can now be saved.
+- `toArray()` and `toJson()` now include nested resources, such as included images and inventory products, instead of empty objects.
 
 ### Changes
 - Added `Resource::requestCollection()`, which works like `request()` but always returns a collection.
