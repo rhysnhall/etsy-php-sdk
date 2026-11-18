@@ -151,6 +151,8 @@ The fourth argument is optional config:
 | Option | Default | Description |
 |---|---|---|
 | `404_error` | `false` | Throw a `RequestException` when Etsy returns 404. See [Error handling](#error-handling). |
+| `timeout` | `60` | Seconds to wait for a response before failing, or `0` for no limit. Uploads have no limit unless you set this. |
+| `connect_timeout` | `10` | Seconds to wait to connect to Etsy, or `0` for no limit. |
 
 Some endpoints are public and only need your app's keys. For those, you can leave out the access token:
 
@@ -241,7 +243,7 @@ foreach($listings->paginate(300) as $listing) {
 }
 ```
 
-`paginate($results)` keeps fetching pages until at least `$results` items have been returned (up to 500) or there are no more pages. It's available for `Listing`, `Shop` and `Review` collections, and throws an `SdkException` for other resources.
+`paginate($results)` keeps fetching pages until at least `$results` items have been returned (up to 500) or there are no more pages. It's available for `Listing`, `Shop`, `Review`, `Receipt`, `Transaction`, `LedgerEntry`, `ShippingDestination`, `ProcessingProfile` and `UserAddress` collections, and throws an `SdkException` for other resources.
 
 ### Other collection methods
 
@@ -297,6 +299,27 @@ $listing->save();
 You can also pass the data to send directly: `$listing->save(['title' => 'New title'])`.
 
 After saving, the resource is updated with the values Etsy returns. If Etsy rejects the change, `save()` throws a `RequestException`, including for a 404 whatever the `404_error` setting.
+
+### Shipping orders
+
+Add tracking to a receipt to mark it as shipped. Etsy emails the buyer each time tracking is submitted, and returns the updated receipt:
+
+```php
+use Etsy\Resources\Receipt;
+
+$receipt = Receipt::get($shopId, $receiptId);
+$receipt->addTracking([
+  'tracking_code' => '1Z999AA10123456784',
+  'carrier_name' => 'ups',
+]);
+
+echo $receipt->is_shipped; // true
+
+// Or without fetching the receipt first:
+$receipt = Receipt::createShipment($shopId, $receiptId, $tracking);
+```
+
+A receipt's transactions (the items in the order) are included with it, so `$receipt->transactions` doesn't make another request.
 
 ### Inventory
 

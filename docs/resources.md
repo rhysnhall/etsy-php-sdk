@@ -184,7 +184,7 @@ A listing. `Listing::create()` creates a draft; publish it by setting `state` to
 | `$listing->inventory(array $params = [])`<br>Get the listing inventory. Uses the inventory already attached to the listing if present. | `ListingInventory\|null` | `ListingInventory::get()` |
 | `$listing->product(int $product_id)`<br>Get a listing product. | `ListingProduct\|null` | `ListingProduct::get()` |
 | `$listing->translation(string $language)`<br>Get a listing translation. | `ListingTranslation\|null` | `ListingTranslation::get()` |
-| `$listing->personalization()`<br>Get a listing personalization. | `ListingPersonalization\|null` | `ListingPersonalization::get()` |
+| `$listing->personalization()`<br>Get the listing personalization. Uses personalization included with the listing if present. | `ListingPersonalization\|null` | `ListingPersonalization::get()` |
 
 Fields sent by `save()`: `image_ids`, `title`, `description`, `materials`, `should_auto_renew`, `shipping_profile_id`, `return_policy_id`, `shop_section_id`, `item_weight`, `item_length`, `item_width`, `item_height`, `item_weight_unit`, `item_dimensions_unit`, `is_taxable`, `taxonomy_id`, `tags`, `who_made`, `when_made`, `featured_rank`, `is_personalizable`, `state`, `is_supply`, `production_partner_ids`, `type`, `gpsr_manufacturer_type`, `gpsr_manufacturer_id`, `gpsr_responsible_person_type`, `gpsr_responsible_person_id`, `gpsr_serial_number`, `gpsr_safety_warnings`, `ecgt_garan_brand`, `ecgt_garan_years`, `ecgt_garan_model`, `ecgt_garan_guarantee_details`, `ecgt_other_commercial_guarantee_details`, `ecgt_after_sales_service_info`, `ecgt_software_update_details`.
 
@@ -252,7 +252,7 @@ Personalization questions on a listing. See Etsy's [personalization migration gu
 
 | Instance method | Returns | Calls |
 |---|---|---|
-| `$listingPersonalization->save(?array $data = null)`<br>Saves updates to the current listing personalization. | `ListingPersonalization` | [`POST /shops/{shop_id}/listings/{listing_id}/personalization`](https://developers.etsy.com/documentation/reference#operation/updateListingPersonalization) |
+| `$listingPersonalization->save(?array $data = null, bool $supportMultipleQuestions = true)`<br>Saves updates to the current listing personalization. Pass `false` as the second argument for legacy (single question) mode. | `ListingPersonalization` | [`POST /shops/{shop_id}/listings/{listing_id}/personalization`](https://developers.etsy.com/documentation/reference#operation/updateListingPersonalization) |
 
 Fields sent by `save()`: `personalization_questions`.
 
@@ -327,11 +327,13 @@ An order (receipt) placed with a shop.
 | `Receipt::all(int $shop_id, array $params = [])`<br>Get all receipts for a shop. | `Collection` | [`GET /shops/{shop_id}/receipts`](https://developers.etsy.com/documentation/reference#operation/getShopReceipts) | `transactions_r` |
 | `Receipt::get(int $shop_id, int $receipt_id)`<br>Get a single receipt. | `Receipt\|null` | [`GET /shops/{shop_id}/receipts/{receipt_id}`](https://developers.etsy.com/documentation/reference#operation/getShopReceipt) | `transactions_r` |
 | `Receipt::update(int $shop_id, int $receipt_id, array $data)`<br>Update a shop receipt. | `Receipt\|null` | [`PUT /shops/{shop_id}/receipts/{receipt_id}`](https://developers.etsy.com/documentation/reference#operation/updateShopReceipt) | `transactions_w` |
+| `Receipt::createShipment(int $shop_id, int $receipt_id, array $data)`<br>Submit tracking for a receipt. Etsy emails the buyer. Returns the updated receipt. | `Receipt\|null` | [`POST /shops/{shop_id}/receipts/{receipt_id}/tracking`](https://developers.etsy.com/documentation/reference#operation/createReceiptShipment) | `transactions_w` |
 
 | Instance method | Returns | Calls |
 |---|---|---|
 | `$receipt->save(?array $data = null)`<br>Saves updates to the current receipt. | `Receipt` | [`PUT /shops/{shop_id}/receipts/{receipt_id}`](https://developers.etsy.com/documentation/reference#operation/updateShopReceipt) |
-| `$receipt->transactions()`<br>Get all transactions for the receipt. | `Collection` | `Transaction::allByReceipt()` |
+| `$receipt->transactions()`<br>Get the receipt's transactions. Uses those included with the receipt if present. | `Collection` | `Transaction::allByReceipt()` |
+| `$receipt->addTracking(array $data)`<br>Submit tracking for this receipt and update it with Etsy's response. Etsy emails the buyer. | `Receipt` | [`POST /shops/{shop_id}/receipts/{receipt_id}/tracking`](https://developers.etsy.com/documentation/reference#operation/createReceiptShipment) |
 | `$receipt->payments()`<br>Get all payments for the receipt. | `Collection` | `Payment::allByReceipt()` |
 | `$receipt->listings(array $params = [])`<br>Get all listings for the receipt. | `Collection` | `Listing::allByReceipt()` |
 
@@ -352,11 +354,11 @@ A single item sold within a receipt.
 
 ### Shipment
 
-Tracking information for a receipt. Etsy emails the buyer each time a shipment is created.
+A shipment on a receipt, returned in a receipt's `shipments`. To add tracking, use `Receipt::createShipment()` or `$receipt->addTracking()`.
 
 | Method | Returns | Etsy endpoint | Scope |
 |---|---|---|---|
-| `Shipment::create(int $shop_id, int $receipt_id, array $data)`<br>Create a shipment for a shop receipt. | `Shipment\|null` | [`POST /shops/{shop_id}/receipts/{receipt_id}/tracking`](https://developers.etsy.com/documentation/reference#operation/createReceiptShipment) | `transactions_w` |
+| `Shipment::create(int $shop_id, int $receipt_id, array $data)`<br>Deprecated. Returns receipt data in a `Shipment`; use `Receipt::createShipment()` or `$receipt->addTracking()`. | `Shipment\|null` | [`POST /shops/{shop_id}/receipts/{receipt_id}/tracking`](https://developers.etsy.com/documentation/reference#operation/createReceiptShipment) | `transactions_w` |
 
 ### Payment
 

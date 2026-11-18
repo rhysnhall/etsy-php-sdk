@@ -14,8 +14,19 @@
 - Personalization included with a listing (via `includes`) can now be saved.
 - `toArray()` and `toJson()` now include nested resources, such as included images and inventory products, instead of empty objects.
 
+- `$receipt->transactions` and `$receipt->transactions()` use the transactions included with the receipt, instead of making another request per receipt.
+- `$listing->personalization()` uses personalization included with the listing, instead of making another request.
+- `ListingPersonalization::save()` now sends `supports_multiple_personalization_questions`, like `update()`. Without it, saving dropdown, upload or multiple questions could fail.
+- `ShippingProfile::destinations()` and `upgrades()` no longer replace the profile's included destinations and upgrades with a collection.
+- `Transaction::allByReceipt()` now sends its `$params`, and `Listing::linkFile()` now sends `$rank`.
+- `User::get()` returns `null` when the token has no user, instead of requesting `/users/` with no ID. Its parameter is now explicitly nullable, avoiding a PHP 8.4 deprecation notice.
+
 ### Changes
 - Added `Resource::requestCollection()`, which works like `request()` but always returns a collection.
+- Added `Receipt::createShipment()` and `$receipt->addTracking()` for submitting tracking. `Shipment::create()` still works but is deprecated: Etsy responds with the updated receipt, which it wrapped in a `Shipment`.
+- `paginate()` now works for `Receipt`, `Transaction`, `LedgerEntry`, `ShippingDestination`, `ProcessingProfile` and `UserAddress` collections.
+- Requests now time out: 10 seconds to connect and 60 seconds for a response (uploads have no response limit). Change these with the `timeout` and `connect_timeout` config options; `0` means no limit.
+- `ListingPersonalization::save()` takes an optional second argument, `$supportMultipleQuestions`.
 
 ## v1.4.1
 
