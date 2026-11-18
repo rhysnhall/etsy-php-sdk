@@ -23,6 +23,32 @@ class ListingTest extends TestCase {
     $this->assertSame('Mug', $listing->title);
   }
 
+  public function testIncludedAssociationsAreReturnedWithoutAnotherRequest(): void {
+    $this->respond([
+      'listing_id' => 11,
+      'shop_id' => 5,
+      'images' => [['listing_image_id' => 1, 'url_570xN' => 'https://example.com/1.jpg']],
+      'videos' => [['video_id' => 2]],
+      'personalization' => ['personalization_questions' => []],
+    ]);
+    $listing = Listing::get(11, ['includes' => 'Images,Videos,Personalization']);
+    $requests = $this->client->requestCount();
+
+    $this->assertInstanceOf(\Etsy\Resources\ListingImage::class, $listing->images[0]);
+    $this->assertSame('https://example.com/1.jpg', $listing->images[0]->url_570xN);
+    $this->assertInstanceOf(\Etsy\Resources\ListingVideo::class, $listing->videos[0]);
+    $this->assertInstanceOf(\Etsy\Resources\ListingPersonalization::class, $listing->personalization);
+    $this->assertSame($requests, $this->client->requestCount(), 'Included associations should not be fetched again.');
+  }
+
+  public function testImagesMethodStillFetches(): void {
+    $listing = new Listing(json_decode('{"listing_id": 11, "shop_id": 5}'));
+    $this->respond(['count' => 0, 'results' => []]);
+
+    $listing->images();
+    $this->assertLastRequest('GET', '/application/listings/11/images');
+  }
+
   public function testAllByIds(): void {
     $this->respond($this->listings());
     $listings = Listing::allByIds([11, 12], ['Images']);

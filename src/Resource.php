@@ -66,7 +66,9 @@ class Resource {
     $find = strtolower($property);
     $properties = array_change_key_case((array)$this->_properties);
     // Check for any mutators. If one exists then we want to call that instead of directly getting the property.
-    if(method_exists($this, $find) && isset($properties[$find])) {
+    // Associations that were included in the response are returned as is, rather than fetched again.
+    $associations = array_change_key_case($this->_associations);
+    if(method_exists($this, $find) && isset($properties[$find]) && !isset($associations[$find])) {
       return $this->$property();
     }
     // Return null for any property that is not set.
