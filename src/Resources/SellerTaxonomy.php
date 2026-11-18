@@ -18,7 +18,7 @@ class SellerTaxonomy extends Resource {
    * @return \Etsy\Collection[Etsy\Resources\SellerTaxonomy] 
    */
   public static function all(): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/seller-taxonomy/nodes",
       "SellerTaxonomy"

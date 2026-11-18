@@ -18,7 +18,7 @@ class BuyerTaxonomy extends Resource {
    * @return \Etsy\Collection[Etsy\Resources\BuyerTaxonomy] 
    */
   public static function all(): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/buyer-taxonomy/nodes",
       "BuyerTaxonomy"

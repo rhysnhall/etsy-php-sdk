@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+- Methods that return a collection now return an empty collection when Etsy returns a 404, instead of failing with a PHP error. Set the `404_error` option to throw a `RequestException` instead, as before.
+- `Listing::allByReturnPolicy()` and `ReturnPolicy::listings()` no longer throw a TypeError on every call.
+
+### Changes
+- Added `Resource::requestCollection()`, which works like `request()` but always returns a collection.
+
 ## v1.4.1
 
 This release fixes several bugs and adds full documentation. There are no breaking changes.

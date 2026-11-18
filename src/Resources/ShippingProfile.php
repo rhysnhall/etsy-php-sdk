@@ -42,7 +42,7 @@ class ShippingProfile extends Resource {
   public static function all(
     int $shop_id
   ): \Etsy\Collection {
-    $profiles = self::request(
+    $profiles = self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/shipping-profiles",
       "ShippingProfile"

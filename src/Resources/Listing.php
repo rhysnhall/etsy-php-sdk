@@ -94,7 +94,7 @@ class Listing extends Resource {
     string $url,
     array $params
   ): \Etsy\Collection {
-    $listings = self::request(
+    $listings = self::requestCollection(
       "GET",
       $url,
       "Listing",
@@ -275,7 +275,7 @@ class Listing extends Resource {
   ): \Etsy\Collection {
     return self::fetchAll(
       "/application/shops/{$shop_id}/policies/return/{$policy_id}/listings",
-      $params
+      []
     );
   }
 

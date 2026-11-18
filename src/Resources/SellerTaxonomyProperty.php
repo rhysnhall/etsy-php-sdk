@@ -21,7 +21,7 @@ class SellerTaxonomyProperty extends Resource {
   public static function all(
     int $taxonomy_id
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/seller-taxonomy/nodes/{$taxonomy_id}/properties",
       "SellerTaxonomyProperty"

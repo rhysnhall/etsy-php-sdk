@@ -51,8 +51,8 @@ An Etsy shop. Most shop data is reached through the instance methods on a `Shop`
 |---|---|---|---|
 | `Shop::get(int $shop_id)`<br>Gets an Etsy shop. | `Shop\|null` | [`GET /shops/{shop_id}`](https://developers.etsy.com/documentation/reference#operation/getShop) | none |
 | `Shop::getByUserId(int $user_id)`<br>Gets a shop by a users ID. | `Shop\|null` | [`GET /users/{user_id}/shops`](https://developers.etsy.com/documentation/reference#operation/getShopByOwnerUserId) | none |
-| `Shop::update(int $shop_id, array $data)`<br>Updates a shop. | `Shop\|null` |  |  |
-| `Shop::all(string $keyword, array $params = [])`<br>Search for shops by name. | `Collection` |  |  |
+| `Shop::update(int $shop_id, array $data)`<br>Updates a shop. | `Shop\|null` | [`PUT /shops/{shop_id}`](https://developers.etsy.com/documentation/reference#operation/updateShop) | `shops_r`, `shops_w` |
+| `Shop::all(string $keyword, array $params = [])`<br>Search for shops by name. | `Collection` | [`GET /shops`](https://developers.etsy.com/documentation/reference#operation/findShops) | none |
 
 | Instance method | Returns | Calls |
 |---|---|---|
@@ -120,7 +120,7 @@ Production partners a shop works with.
 
 | Method | Returns | Etsy endpoint | Scope |
 |---|---|---|---|
-| `ProductionPartner::all(int $shop_id)`<br>Get all production partners for a shop. | `Collection` |  |  |
+| `ProductionPartner::all(int $shop_id)`<br>Get all production partners for a shop. | `Collection` | [`GET /shops/{shop_id}/production-partners`](https://developers.etsy.com/documentation/reference#operation/getShopProductionPartners) | `shops_r` |
 
 ### EconomicOperator
 

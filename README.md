@@ -139,9 +139,7 @@ Create an `Etsy` instance with your app's keystring and shared secret and the us
 use Etsy\Etsy;
 use Etsy\Resources\{User, Shop};
 
-$etsy = new Etsy($keystring, $sharedSecret, $accessToken, [
-  '404_error' => true, // recommended; see Error handling
-]);
+$etsy = new Etsy($keystring, $sharedSecret, $accessToken);
 
 $me = User::me(); // ->user_id and ->shop_id of the authenticated user
 $shop = Shop::get($me->shop_id);
@@ -408,13 +406,23 @@ catch(RequestException $e) {
 
 ### Not found responses
 
-By default, a 404 from Etsy doesn't throw. Methods that return a single resource return `null` instead. Methods that return a collection can fail with a PHP error, so **setting `'404_error' => true` is recommended**:
+By default, a 404 from Etsy doesn't throw:
+
+- Methods that return a single resource return `null`.
+- Methods that return a collection return an empty collection.
+
+```php
+$listing = Listing::get($listingId);
+if($listing === null) {
+  // Not found.
+}
+```
+
+To throw a `RequestException` on a 404 instead, like any other error, set the `404_error` option:
 
 ```php
 $etsy = new Etsy($keystring, $sharedSecret, $accessToken, ['404_error' => true]);
 ```
-
-With it set, a 404 throws a `RequestException` like any other error.
 
 ## Resource reference
 

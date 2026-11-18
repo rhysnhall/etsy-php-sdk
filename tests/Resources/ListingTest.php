@@ -100,6 +100,14 @@ class ListingTest extends TestCase {
     $this->assertSame(77, $profile->shipping_profile_id);
   }
 
+  public function testAllByReturnPolicy(): void {
+    $this->respond($this->listings());
+    $listings = Listing::allByReturnPolicy(5, 8);
+
+    $this->assertLastRequest('GET', '/application/shops/5/policies/return/8/listings');
+    $this->assertCount(2, $listings->data);
+  }
+
   public function testCreateSendsFormData(): void {
     $this->respond(['listing_id' => 99, 'shop_id' => 5], 201);
     Listing::create(5, ['title' => 'Mug', 'quantity' => 1]);

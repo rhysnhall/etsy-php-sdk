@@ -34,7 +34,7 @@ class ShippingUpgrade extends Resource {
     int $shop_id,
     int $profile_id
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/shipping-profiles/{$profile_id}/upgrades",
       "ShippingUpgrade"

@@ -22,7 +22,7 @@ class UserAddress extends Resource {
   public static function all(
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/user/addresses",
       "UserAddress",

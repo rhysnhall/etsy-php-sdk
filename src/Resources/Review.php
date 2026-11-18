@@ -23,7 +23,7 @@ class Review extends Resource {
     int $shop_id,
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/reviews",
       "Review",
@@ -42,7 +42,7 @@ class Review extends Resource {
     int $listing_id,
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/listings/{$listing_id}/reviews",
       "Review",

@@ -36,7 +36,7 @@ class LedgerEntry extends Resource {
     if($params['max_created'] instanceof \DateTime) {
       $params['max_created'] = $params['max_created']->getTimestamp();
     }
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/payment-account/ledger-entries",
       "LedgerEntry",

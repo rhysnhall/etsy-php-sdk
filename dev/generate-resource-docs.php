@@ -158,7 +158,7 @@ function signature(string $class, ReflectionMethod $method): string {
 function calls(ReflectionMethod $method, array $source): array {
   $body = implode('', array_slice($source, $method->getStartLine() - 1, $method->getEndLine() - $method->getStartLine() + 1));
   $endpoints = [];
-  preg_match_all('/(?:request\(\s*"(\w+)",\s*|fetchAll\(\s*|deleteRequest\(\s*|updateRequest\(\s*)"(\/application[^"]*)"(?:[^;]*?"(PATCH|POST|PUT)")?/s', $body, $matches, PREG_SET_ORDER);
+  preg_match_all('/(?:request(?:Collection)?\(\s*["\'](\w+)["\'],\s*|fetchAll\(\s*|deleteRequest\(\s*|updateRequest\(\s*)"(\/application[^"]*)"(?:[^;]*?"(PATCH|POST|PUT)")?/s', $body, $matches, PREG_SET_ORDER);
   foreach($matches as $m) {
     if($m[1]) $verb = $m[1];
     else if(str_contains($m[0], 'fetchAll')) $verb = 'GET';

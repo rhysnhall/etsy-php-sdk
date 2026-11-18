@@ -21,7 +21,7 @@ class ShippingCarrier extends Resource {
   public static function all(
     string $iso_code
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shipping-carriers",
       "ShippingCarrier",

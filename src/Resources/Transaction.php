@@ -23,7 +23,7 @@ class Transaction extends Resource {
     int $shop_id,
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/transactions",
       "Transaction",
@@ -62,7 +62,7 @@ class Transaction extends Resource {
     int $listing_id,
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/listings/{$listing_id}/transactions",
       "Transaction",
@@ -82,7 +82,7 @@ class Transaction extends Resource {
     int $receipt_id,
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/receipts/{$receipt_id}/transactions",
       "Transaction"

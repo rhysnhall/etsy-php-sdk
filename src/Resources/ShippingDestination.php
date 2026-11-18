@@ -36,7 +36,7 @@ class ShippingDestination extends Resource {
     int $profile_id,
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/shipping-profiles/{$profile_id}/destinations",
       "ShippingDestination",

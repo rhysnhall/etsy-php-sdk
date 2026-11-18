@@ -209,6 +209,34 @@ class Resource {
   }
 
   /**
+   * Makes a request that is expected to return multiple resources. Always
+   * returns a collection: an empty one if Etsy returns a 404 (and the
+   * 404_error option is off).
+   *
+   * @param string $method
+   * @param string $url
+   * @param string $resource
+   * @param array $params
+   * @param array $options
+   * @return Collection
+   */
+  public static function requestCollection(
+    string $method,
+    string $url,
+    string $resource,
+    array $params = [],
+    array $options = []
+  ): Collection {
+    $result = static::request($method, $url, $resource, $params, $options);
+    if($result instanceof Collection) {
+      return $result;
+    }
+    $collection = new Collection($resource, $url);
+    $collection->next_page = false;
+    return $collection;
+  }
+
+  /**
    * Returns the Resources properties as a JSON encoded object.
    *
    * @return string

@@ -39,7 +39,7 @@ class ListingImage extends Resource {
   public static function all(
     int $listing_id
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/listings/{$listing_id}/images",
       "ListingImage"

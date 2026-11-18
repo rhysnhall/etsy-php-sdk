@@ -107,7 +107,7 @@ class Shop extends Resource {
       throw new ApiException("You must specify a keyword when searching for Etsy shops.");
     }
     $params['shop_name'] = $keyword;
-    return self::request(
+    return self::requestCollection(
       'GET',
       "/application/shops",
       "Shop",

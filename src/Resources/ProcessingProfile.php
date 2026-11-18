@@ -30,7 +30,7 @@ class ProcessingProfile extends Resource {
     int $shop_id,
     array $params = []
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/readiness-state-definitions",
       "ProcessingProfile",

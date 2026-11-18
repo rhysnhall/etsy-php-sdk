@@ -23,7 +23,7 @@ class ListingVariationImage extends Resource {
     int $shop_id,
     int $listing_id
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/listings/{$listing_id}/variation-images",
       "ListingVariationImage"

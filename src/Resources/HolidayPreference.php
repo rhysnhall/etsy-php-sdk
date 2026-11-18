@@ -29,7 +29,7 @@ class HolidayPreference extends Resource {
   public static function all(
     int $shop_id
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/holiday-preferences",
       "HolidayPreference"

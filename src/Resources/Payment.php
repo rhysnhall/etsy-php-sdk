@@ -24,7 +24,7 @@ class Payment extends Resource {
     int $shop_id,
     int|array $payment_ids
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/payments",
       "Payment",
@@ -45,7 +45,7 @@ class Payment extends Resource {
     int $shop_id,
     int $receipt_id
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/receipts/{$receipt_id}/payments",
       "Payment"
@@ -63,7 +63,7 @@ class Payment extends Resource {
     int $shop_id,
     int|array $ledger_entry_ids
   ): \Etsy\Collection {
-    return self::request(
+    return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/payment-account/ledger-entries/payments",
       "Payment",
