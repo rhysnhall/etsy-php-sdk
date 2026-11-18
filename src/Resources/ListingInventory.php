@@ -81,7 +81,7 @@ class ListingInventory extends Resource {
       (function($product) use($listing_id) {
         $product->listing_id = $listing_id;
       }),
-      ($inventory->products ?? [])
+      ($this->products ?? [])
     );
   }
 
