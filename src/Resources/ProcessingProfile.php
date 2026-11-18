@@ -15,6 +15,8 @@ class ProcessingProfile extends Resource {
    */
   protected $_saveable = [
     'readiness_state',
+    'min_processing_days',
+    'max_processing_days',
     'min_processing_time',
     'max_processing_time',
     'processing_time_unit'
@@ -122,7 +124,16 @@ class ProcessingProfile extends Resource {
     ?array $data = null
   ): \Etsy\Resources\ProcessingProfile {
     if(!$data) {
-      $data = $this->getSaveData();
+      $data = $this->getSaveData(true);
+      // Etsy returns processing times in days but updates them as a time
+      // plus a unit, so send changed *_processing_days as *_processing_time.
+      foreach(['min', 'max'] as $bound) {
+        if(array_key_exists("{$bound}_processing_days", $data)) {
+          $data["{$bound}_processing_time"] ??= $data["{$bound}_processing_days"];
+          $data['processing_time_unit'] ??= 'days';
+          unset($data["{$bound}_processing_days"]);
+        }
+      }
     }
     if(count($data) == 0) {
       return $this;
