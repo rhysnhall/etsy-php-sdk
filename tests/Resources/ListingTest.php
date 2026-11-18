@@ -146,6 +146,16 @@ class ListingTest extends TestCase {
     $this->assertCount(2, $listings->data);
   }
 
+  public function testLinkFileSendsRank(): void {
+    $listing = new Listing(json_decode('{"listing_id": 11, "shop_id": 5}'));
+    $this->respond(['listing_file_id' => 77, 'rank' => 3]);
+
+    $listing->linkFile(77, 3);
+
+    $this->assertLastRequest('POST', '/application/shops/5/listings/11/files');
+    $this->assertSame(['listing_file_id' => '77', 'rank' => '3'], $this->lastForm());
+  }
+
   public function testCreateSendsFormData(): void {
     $this->respond(['listing_id' => 99, 'shop_id' => 5], 201);
     Listing::create(5, ['title' => 'Mug', 'quantity' => 1]);

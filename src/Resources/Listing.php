@@ -478,7 +478,7 @@ class Listing extends Resource {
       $this->listing_id,
       [
         'listing_file_id' => $file_id,
-        'rank' => 1
+        'rank' => $rank
       ]
     );
   }

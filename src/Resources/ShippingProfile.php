@@ -177,7 +177,6 @@ class ShippingProfile extends Resource {
       $this->shipping_profile_id,
       $params
     );
-    $this->shipping_profile_destinations = $destinations;
     return $destinations;
   }
 
@@ -191,7 +190,6 @@ class ShippingProfile extends Resource {
       $this->shop_id,
       $this->shipping_profile_id
     );
-    $this->shipping_profile_upgrades = $upgrades;
     return $upgrades;
   }
 

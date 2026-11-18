@@ -85,7 +85,8 @@ class Transaction extends Resource {
     return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/receipts/{$receipt_id}/transactions",
-      "Transaction"
+      "Transaction",
+      $params
     );
   }
 }

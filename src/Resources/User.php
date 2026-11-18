@@ -22,10 +22,14 @@ class User extends Resource {
    * @return Etsy\Resources\User
    */
   public static function get(
-    string|int $user_id = null
+    string|int|null $user_id = null
   ): ?\Etsy\Resources\User {
     if(!$user_id) {
       $user_id = self::me()->user_id ?? null;
+      if(!$user_id) {
+        // The token has no user (or /users/me was not found).
+        return null;
+      }
     }
     return self::request(
       "GET",
