@@ -25,9 +25,15 @@ class Receipt extends Resource {
   ];
 
   /**
+   * Receipts have is_shipped and is_paid, but Etsy's update endpoint takes
+   * them as was_shipped and was_paid. save() maps between the two. Setting
+   * was_shipped or was_paid directly also works.
+   *
    * @var array
    */
   protected $_saveable = [
+    'is_shipped',
+    'is_paid',
     'was_shipped',
     'was_paid'
   ];
@@ -108,7 +114,11 @@ class Receipt extends Resource {
     ?array $data = null
   ): \Etsy\Resources\Receipt {
     if(!$data) {
-      $data = $this->getSaveData();
+      // Send only what changed, using the names the update endpoint expects.
+      $data = [];
+      foreach($this->getSaveData(true) as $field => $value) {
+        $data[str_replace('is_', 'was_', $field)] = $value;
+      }
     }
     if(count($data) == 0) {
       return $this;
