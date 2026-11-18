@@ -55,9 +55,10 @@ class ListingPersonalization extends Resource {
     $data,
     $supportMultipleQuestions = true
   ): ?\Etsy\Resources\ListingPersonalization {
+    $supportsMultiple = $supportMultipleQuestions ? 'true' : 'false';
     $listingPersonalization = self::request(
       "POST",
-      "/application/shops/{$shop_id}/listings/{$listing_id}/personalization?supports_multiple_personalization_questions={$supportMultipleQuestions}",
+      "/application/shops/{$shop_id}/listings/{$listing_id}/personalization?supports_multiple_personalization_questions={$supportsMultiple}",
       "ListingPersonalization",
       $data,
       ['json' => true]
