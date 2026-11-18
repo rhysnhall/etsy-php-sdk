@@ -59,7 +59,8 @@ class ListingPersonalization extends Resource {
       "POST",
       "/application/shops/{$shop_id}/listings/{$listing_id}/personalization?supports_multiple_personalization_questions={$supportMultipleQuestions}",
       "ListingPersonalization",
-      $data
+      $data,
+      ['json' => true]
     );
     if($listingPersonalization) {
       $listingPersonalization->shop_id = $shop_id;
@@ -86,7 +87,8 @@ class ListingPersonalization extends Resource {
     return $this->updateRequest(
       "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/personalization",
       $data,
-      "POST"
+      "POST",
+      ['json' => true]
     );
   }
 

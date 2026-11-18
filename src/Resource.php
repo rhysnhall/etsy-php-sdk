@@ -143,14 +143,16 @@ class Resource {
    * @param string $url
    * @param array $data
    * @param string $method
+   * @param array $options Request options. Pass ['json' => true] to send the body as JSON.
    * @return Resource
    */
-  protected function updateRequest(string $url, array $data, $method = "PUT") {
+  protected function updateRequest(string $url, array $data, $method = "PUT", array $options = []) {
     $result = $this->request(
         $method,
         $url,
         basename(str_replace('\\', '/', get_class($this))),
-        $data
+        $data,
+        $options
       );
     // Update the existing properties.
     $properties = get_object_vars($result)['_properties'];
@@ -186,17 +188,20 @@ class Resource {
    * @param string $url
    * @param string $resource
    * @param array $params
+   * @param array $options Request options. Pass ['json' => true] to send the body as JSON.
    * @return Collection
    */
   public static function request(
     string $method,
     string $url,
     string $resource,
-    array $params = []
+    array $params = [],
+    array $options = []
   ) {
     $response = Etsy::$client->{strtolower($method)}(
       $url,
-      $params
+      $params,
+      $options
     );
     return Etsy::getResource($response, $resource);
   }

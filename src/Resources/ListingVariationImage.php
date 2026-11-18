@@ -49,7 +49,8 @@ class ListingVariationImage extends Resource {
       "ListingVariationImage",
       [
         'variation_images' => $variation_images
-      ]
+      ],
+      ['json' => true]
     );
   }
 }

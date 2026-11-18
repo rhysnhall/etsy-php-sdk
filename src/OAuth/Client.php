@@ -102,8 +102,12 @@ class Client {
     if($method == 'get' && count($args[1] ?? [])) {
       $uri .= "?".RequestUtil::prepareParameters($args[1]);
     }
+    $request_options = $args[2] ?? [];
     if(in_array($method, ['post', 'put', 'patch'])) {
-      if($file = RequestUtil::prepareFile($args[1] ?? [])) {
+      if($request_options['json'] ?? false) {
+        $opts['json'] = $args[1] ?? [];
+      }
+      else if($file = RequestUtil::prepareFile($args[1] ?? [])) {
         $opts['multipart'] = $file;
       }
       else {

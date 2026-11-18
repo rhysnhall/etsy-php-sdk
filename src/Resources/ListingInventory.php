@@ -58,7 +58,8 @@ class ListingInventory extends Resource {
       "PUT",
       "/application/listings/{$listing_id}/inventory",
       "ListingInventory",
-      $data
+      $data,
+      ['json' => true]
     );
     if($inventory) {
       $inventory->assignListingId($listing_id);
