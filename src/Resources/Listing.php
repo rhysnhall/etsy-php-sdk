@@ -721,5 +721,10 @@ class Listing extends Resource {
     if($inventory instanceof ListingInventory) {
       $inventory->assignListingId($this->listing_id);
     }
+    $personalization = $this->_properties->personalization ?? null;
+    if($personalization instanceof ListingPersonalization) {
+      $personalization->shop_id = $this->shop_id;
+      $personalization->listing_id = $this->listing_id;
+    }
   }
 }

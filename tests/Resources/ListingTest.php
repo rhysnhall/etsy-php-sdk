@@ -41,6 +41,27 @@ class ListingTest extends TestCase {
     $this->assertSame($requests, $this->client->requestCount(), 'Included associations should not be fetched again.');
   }
 
+  public function testIncludedPersonalizationCanBeSaved(): void {
+    $this->respond(['listing_id' => 11, 'shop_id' => 5, 'personalization' => [
+      'personalization_questions' => [['question_text' => 'Name']],
+    ]]);
+    $personalization = Listing::get(11, ['includes' => 'Personalization'])->personalization;
+    $personalization->personalization_questions = [['question_text' => 'Initials']];
+    $this->respond(['personalization_questions' => [['question_text' => 'Initials']]]);
+
+    $personalization->save();
+
+    $this->assertLastRequest('POST', '/application/shops/5/listings/11/personalization');
+  }
+
+  public function testIncludedPersonalizationInCollectionsGetsIds(): void {
+    $this->respond($this->listings(['personalization' => ['personalization_questions' => []]]));
+    $personalization = Listing::allByIds([11, 12], ['Personalization'])->data[1]->personalization;
+
+    $this->assertSame(5, $personalization->shop_id);
+    $this->assertSame(12, $personalization->listing_id);
+  }
+
   public function testImagesMethodStillFetches(): void {
     $listing = new Listing(json_decode('{"listing_id": 11, "shop_id": 5}'));
     $this->respond(['count' => 0, 'results' => []]);
