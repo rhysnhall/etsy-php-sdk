@@ -29,7 +29,8 @@ class Shipment extends Resource {
       "POST",
       "/application/shops/{$shop_id}/receipts/{$receipt_id}/tracking",
       "Shipment",
-      $data
+      $data,
+      ['json' => true]
     );
   }
 }

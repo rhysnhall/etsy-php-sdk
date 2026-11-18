@@ -18,7 +18,8 @@ use Etsy\Resources\{
   Receipt,
   LedgerEntry,
   Payment,
-  Transaction
+  Transaction,
+  EconomicOperator
 };
 
 /**
@@ -325,6 +326,27 @@ class Shop extends Resource {
     array $params = []
   ): \Etsy\Collection {
     return Transaction::all($this->shop_id, $params);
+  }
+
+  /**
+   * Get all GPSR economic operators for the shop.
+   *
+   * @return \Etsy\Collection[\Etsy\Resources\EconomicOperator]
+   */
+  public function economicOperators(): \Etsy\Collection {
+    return EconomicOperator::all($this->shop_id);
+  }
+
+  /**
+   * Get a specific GPSR economic operator.
+   *
+   * @param int $economic_operator_id
+   * @return \Etsy\Resources\EconomicOperator
+   */
+  public function economicOperator(
+    int $economic_operator_id
+  ): ?EconomicOperator {
+    return EconomicOperator::get($this->shop_id, $economic_operator_id);
   }
 
 }

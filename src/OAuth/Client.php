@@ -102,15 +102,19 @@ class Client {
     if($method == 'get' && count($args[1] ?? [])) {
       $uri .= "?".RequestUtil::prepareParameters($args[1]);
     }
+    $request_options = $args[2] ?? [];
     if(in_array($method, ['post', 'put', 'patch'])) {
-      if($file = RequestUtil::prepareFile($args[1] ?? [])) {
+      if($request_options['json'] ?? false) {
+        $opts['json'] = $args[1] ?? [];
+      }
+      else if($file = RequestUtil::prepareFile($args[1] ?? [])) {
         $opts['multipart'] = $file;
       }
       else {
         $opts['form_params'] = $args[1] ?? [];
       }
     }
-    if($method == 'DELETE' && count($args[1] ?? [])) {
+    if($method == 'delete' && count($args[1] ?? [])) {
       $opts['query'] = $args[1];
     }
     $opts['headers'] = $this->headers;
@@ -123,19 +127,30 @@ class Client {
       }
       return $response;
     }
-    catch(\Exception $e) {
+    catch(BadResponseException $e) {
       $response = $e->getResponse();
       $body = json_decode($response->getBody(), false);
+      $error = $body->error ?? $response->getReasonPhrase();
       $status_code = $response->getStatusCode();
       if($status_code == 404 && !($this->config['404_error'] ?? false)) {
         $response = new \stdClass;
         $response->uri = $uri;
-        $response->error = "{$body->error}";
+        $response->error = "{$error}";
         $response->code = $status_code;
         return $response;
       }
       throw new RequestException(
-        "Received HTTP status code [$status_code] with error \"{$body->error}\"."
+        "Received HTTP status code [$status_code] with error \"{$error}\".",
+        $status_code,
+        $e
+      );
+    }
+    catch(\GuzzleHttp\Exception\GuzzleException $e) {
+      // No response was received (e.g. connection failure or timeout).
+      throw new RequestException(
+        "Request to {$uri} failed: {$e->getMessage()}",
+        0,
+        $e
       );
     }
   }
@@ -269,12 +284,20 @@ class Client {
    * @throws Etsy\Exception\OAuthException
    */
   private function handleAcessTokenError(\Exception $e) {
+    if(!($e instanceof BadResponseException)) {
+      throw new OAuthException(
+        "Access token request failed: {$e->getMessage()}",
+        0,
+        $e
+      );
+    }
     $response = $e->getResponse();
     $body = json_decode($response->getBody(), false);
     $status_code = $response->getStatusCode();
-    $error_msg = "with error \"{$body->error}\"";
+    $error = $body->error ?? $response->getReasonPhrase();
+    $error_msg = "with error \"{$error}\"";
     if($body->error_description ?? false) {
-      $error_msg .= "and message \"{$body->error_description}\"";
+      $error_msg .= " and message \"{$body->error_description}\"";
     }
     throw new OAuthException(
       "Received HTTP status code [$status_code] {$error_msg} when requesting access token."

@@ -5,16 +5,20 @@ namespace Etsy\Resources;
 use Etsy\Resource;
 
 /**
- * Listing Inventory class.
+ * Listing Offering class.
  *
- * @link https://developers.etsy.com/documentation/reference#tag/ShopListing-Offering
+ * Etsy no longer exposes a standalone offering endpoint. Offerings are returned
+ * as part of a listing product (see ListingProduct and ListingInventory).
+ *
+ * @link https://developers.etsy.com/documentation/reference#tag/ShopListing-Product
  * @author Rhys Hall hello@rhyshall.com
  */
 class ListingOffering extends Resource {
 
   /**
-   * Get a product offering.
-   * 
+   * Get a product offering. Fetches the parent listing product and returns the
+   * matching offering from it.
+   *
    * @param int $listing_id
    * @param int $product_id
    * @param int $offering_id
@@ -25,10 +29,10 @@ class ListingOffering extends Resource {
     int $product_id,
     int $offering_id
   ): ?\Etsy\Resources\ListingOffering {
-    return self::request(
-      "GET",
-      "/application/listings/{$listing_id}/products/{$product_id}/offerings/{$offering_id}",
-      "ListingOffering"
-    );
+    $product = ListingProduct::get($listing_id, $product_id);
+    if(!$product) {
+      return null;
+    }
+    return $product->findOffering($offering_id);
   }
 }

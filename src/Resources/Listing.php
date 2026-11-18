@@ -54,7 +54,20 @@ class Listing extends Resource {
     'state',
     'is_supply',
     'production_partner_ids',
-    'type'
+    'type',
+    'gpsr_manufacturer_type',
+    'gpsr_manufacturer_id',
+    'gpsr_responsible_person_type',
+    'gpsr_responsible_person_id',
+    'gpsr_serial_number',
+    'gpsr_safety_warnings',
+    'ecgt_garan_brand',
+    'ecgt_garan_years',
+    'ecgt_garan_model',
+    'ecgt_garan_guarantee_details',
+    'ecgt_other_commercial_guarantee_details',
+    'ecgt_after_sales_service_info',
+    'ecgt_software_update_details'
   ];
 
   /**
@@ -66,7 +79,8 @@ class Listing extends Resource {
     "images" => "ListingImage",
     'shipping_profile' => 'ShippingProfile',
     'videos' => 'ListingVideo',
-    'personalization' => 'ListingPersonalization'
+    'personalization' => 'ListingPersonalization',
+    'inventory' => 'ListingInventory'
   ];
 
   /**
@@ -130,6 +144,52 @@ class Listing extends Resource {
       "/application/listings/batch",
       $params
     );
+  }
+
+  /**
+   * Get the inventory for multiple listings in a single request. Each returned
+   * listing has its inventory attached. Limit of 100 listing IDs per request.
+   *
+   * @param string|array $listing_ids
+   * @return \Etsy\Collection[Etsy\Resources\Listing]
+   */
+  public static function allInventoryByIds(
+    string|array $listing_ids
+  ): \Etsy\Collection {
+    return self::fetchAll(
+      "/application/listings/batch/inventory",
+      ['listing_ids' => self::joinIds($listing_ids)]
+    );
+  }
+
+  /**
+   * Get the shipping profile for multiple listings in a single request. Each
+   * returned listing has its shipping profile attached (only for listings owned
+   * by the authenticated user). Limit of 100 listing IDs per request; if any ID
+   * does not exist the whole request returns a 404.
+   *
+   * @param string|array $listing_ids
+   * @return \Etsy\Collection[Etsy\Resources\Listing]
+   */
+  public static function allShippingByIds(
+    string|array $listing_ids
+  ): \Etsy\Collection {
+    return self::fetchAll(
+      "/application/listings/batch/shipping",
+      ['listing_ids' => self::joinIds($listing_ids)]
+    );
+  }
+
+  /**
+   * Converts an array of IDs to a comma separated string.
+   *
+   * @param string|array $ids
+   * @return string
+   */
+  private static function joinIds(
+    string|array $ids
+  ): string {
+    return is_array($ids) ? implode(',', $ids) : $ids;
   }
 
   /**
@@ -594,6 +654,11 @@ class Listing extends Resource {
    * @return \Etsy\Resources\ListingInventory
    */
   public function inventory(array $params = []): ?\Etsy\Resources\ListingInventory {
+    // Use inventory already attached to the listing (e.g. from allInventoryByIds()).
+    $included = $this->_properties->inventory ?? null;
+    if(!count($params) && $included instanceof ListingInventory) {
+      return $included;
+    }
     return ListingInventory::get(
       $this->listing_id,
       $params
@@ -651,6 +716,10 @@ class Listing extends Resource {
   public function assignShopIdToIncludedResources() {
     if($this->shipping_profile) {
       $this->shipping_profile->assignShopIdToProfile($this->shop_id);
+    }
+    $inventory = $this->_properties->inventory ?? null;
+    if($inventory instanceof ListingInventory) {
+      $inventory->assignListingId($this->listing_id);
     }
   }
 }

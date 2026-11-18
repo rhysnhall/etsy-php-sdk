@@ -58,7 +58,8 @@ class ListingInventory extends Resource {
       "PUT",
       "/application/listings/{$listing_id}/inventory",
       "ListingInventory",
-      $data
+      $data,
+      ['json' => true]
     );
     if($inventory) {
       $inventory->assignListingId($listing_id);
@@ -72,7 +73,7 @@ class ListingInventory extends Resource {
    * @param int $listing_id
    * @return void
    */
-  private function assignListingId(
+  public function assignListingId(
     int $listing_id
   ) {
     $this->listing_id = $listing_id;
@@ -80,7 +81,7 @@ class ListingInventory extends Resource {
       (function($product) use($listing_id) {
         $product->listing_id = $listing_id;
       }),
-      ($inventory->products ?? [])
+      ($this->products ?? [])
     );
   }
 

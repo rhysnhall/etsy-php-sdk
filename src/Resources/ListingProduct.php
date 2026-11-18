@@ -50,11 +50,24 @@ class ListingProduct extends Resource {
   public function offering(
     int $offering_id
   ): ?\Etsy\Resources\ListingOffering {
-    return ListingOffering::get(
-      $this->listing_id,
-      $this->product_id,
-      $offering_id
-    );
+    return $this->findOffering($offering_id);
+  }
+
+  /**
+   * Find an offering on this product by its ID.
+   *
+   * @param int $offering_id
+   * @return \Etsy\Resources\ListingOffering
+   */
+  public function findOffering(
+    int $offering_id
+  ): ?\Etsy\Resources\ListingOffering {
+    foreach(($this->offerings ?? []) as $offering) {
+      if((int)($offering->offering_id ?? 0) === $offering_id) {
+        return $offering;
+      }
+    }
+    return null;
   }
 
 }

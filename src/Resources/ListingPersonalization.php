@@ -55,11 +55,13 @@ class ListingPersonalization extends Resource {
     $data,
     $supportMultipleQuestions = true
   ): ?\Etsy\Resources\ListingPersonalization {
+    $supportsMultiple = $supportMultipleQuestions ? 'true' : 'false';
     $listingPersonalization = self::request(
       "POST",
-      "/application/shops/{$shop_id}/listings/{$listing_id}/personalization?supports_multiple_personalization_questions={$supportMultipleQuestions}",
+      "/application/shops/{$shop_id}/listings/{$listing_id}/personalization?supports_multiple_personalization_questions={$supportsMultiple}",
       "ListingPersonalization",
-      $data
+      $data,
+      ['json' => true]
     );
     if($listingPersonalization) {
       $listingPersonalization->shop_id = $shop_id;
@@ -85,7 +87,9 @@ class ListingPersonalization extends Resource {
     }
     return $this->updateRequest(
       "/application/shops/{$this->shop_id}/listings/{$this->listing_id}/personalization",
-      $data
+      $data,
+      "POST",
+      ['json' => true]
     );
   }
 

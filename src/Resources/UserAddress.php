@@ -3,6 +3,7 @@
 namespace Etsy\Resources;
 
 use Etsy\Resource;
+use Etsy\Exception\SdkException;
 
 /**
  * UserAddress resource class. Represents a User's profile Address in Etsy. You can only get addresses for the currently authenticated user.
@@ -46,16 +47,18 @@ class UserAddress extends Resource {
   }
 
   /**
-   * Delete a user address. This will return true if no address with the ID exists.
-   * 
+   * Delete a user address.
+   *
+   * @deprecated Etsy has removed the deleteUserAddress endpoint from Open API v3.
    * @param int $address_id
    * @return bool
+   * @throws \Etsy\Exception\SdkException
    */
   public static function delete(
     int $address_id
   ): bool {
-    return self::deleteRequest(
-      "/application/user/addresses/{$address_id}",
+    throw new SdkException(
+      "Deleting user addresses is no longer supported by the Etsy API."
     );
   }
 }
