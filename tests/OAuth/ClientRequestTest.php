@@ -124,6 +124,25 @@ class ClientRequestTest extends TestCase {
     @unlink($file);
   }
 
+  public function testUploadWithAMissingFileThrowsAClearError(): void {
+    $this->expectException(RequestException::class);
+    $this->expectExceptionMessage("Can't read the file to upload: /no/such/mug.jpg");
+    $this->client->post('/application/shops/1/listings/2/images', ['image' => '/no/such/mug.jpg']);
+  }
+
+  public function testUploadAcceptsAnOpenStream(): void {
+    $stream = fopen('php://memory', 'r+');
+    fwrite($stream, 'image-bytes');
+    rewind($stream);
+    $this->respond();
+
+    $this->client->post('/application/shops/1/listings/2/images', ['image' => $stream, 'rank' => 1]);
+
+    $body = (string)$this->lastRequest()->getBody();
+    $this->assertStringContainsString('name="image"', $body);
+    $this->assertStringContainsString('image-bytes', $body);
+  }
+
   public function testTimeoutsCanBeConfigured(): void {
     $this->client->setConfig(['timeout' => 5, 'connect_timeout' => 2]);
     $this->respond();

@@ -2,6 +2,9 @@
 
 namespace Etsy\Utils;
 
+use Etsy\Exception\RequestException;
+use Psr\Http\Message\StreamInterface;
+
 /**
  *  HTTP request utilities.
  *
@@ -41,9 +44,7 @@ class Request {
     }
     $data[] = [
       'name' => $type,
-      'contents' => isset($params[$type]['contents']) 
-        ? $params[$type]['contents'] 
-        : fopen($params[$type], 'r')
+      'contents' => self::openFile($params[$type])
     ];
     foreach ($params as $key => $value) {
       if ($key == $type) continue;
@@ -53,6 +54,28 @@ class Request {
       ];
     }
     return $data;
+  }
+
+  /**
+   * Opens a file for upload. Accepts a path, an open stream, or an array with
+   * the file's 'contents'.
+   *
+   * @param mixed $file
+   * @return mixed
+   * @throws RequestException If the path can't be read.
+   */
+  private static function openFile($file) {
+    if(is_array($file) && array_key_exists('contents', $file)) {
+      return $file['contents'];
+    }
+    if(is_resource($file) || $file instanceof StreamInterface) {
+      return $file;
+    }
+    if(!is_string($file) || !is_file($file) || !is_readable($file)) {
+      $path = is_string($file) ? $file : gettype($file);
+      throw new RequestException("Can't read the file to upload: {$path}");
+    }
+    return fopen($file, 'r');
   }
 
   /**
