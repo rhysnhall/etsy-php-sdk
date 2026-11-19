@@ -31,6 +31,22 @@ class MiscTest extends TestCase {
     }
   }
 
+  public function testListingPropertyGetFindsThePropertyInTheListing(): void {
+    $properties = ['count' => 2, 'results' => [
+      ['property_id' => 200, 'property_name' => 'Primary color', 'values' => ['Blue']],
+      ['property_id' => 46803063641, 'property_name' => 'Holiday', 'values' => ['Christmas']],
+    ]];
+    $this->respond($properties);
+    $property = \Etsy\Resources\ListingProperty::get(5, 11, 46803063641);
+
+    $this->assertLastRequest('GET', '/application/shops/5/listings/11/properties');
+    $this->assertSame('Holiday', $property->property_name);
+    $this->assertSame(11, $property->listing_id);
+
+    $this->respond($properties);
+    $this->assertNull(\Etsy\Resources\ListingProperty::get(5, 11, 999));
+  }
+
   public function testAllScopesOnlyContainsCurrentScopes(): void {
     $this->assertNotContains('billing_r', PermissionScopes::ALL_SCOPES);
     $this->assertNotContains('feedback_r', PermissionScopes::ALL_SCOPES);

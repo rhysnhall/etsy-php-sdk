@@ -43,6 +43,29 @@ class ListingProperty extends Resource {
   }
 
   /**
+   * Get a single property of a listing. Etsy's single property endpoint isn't
+   * implemented yet (it only returns a 501), so this fetches the listing's
+   * properties and returns the matching one.
+   *
+   * @param int $shop_id
+   * @param int $listing_id
+   * @param int $property_id
+   * @return Etsy\Resources\ListingProperty
+   */
+  public static function get(
+    int $shop_id,
+    int $listing_id,
+    int $property_id
+  ): ?\Etsy\Resources\ListingProperty {
+    foreach(self::all($shop_id, $listing_id)->data as $property) {
+      if((int)($property->property_id ?? 0) === $property_id) {
+        return $property;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Updates a listing property.
    * 
    * @param int $shop_id
