@@ -27,4 +27,27 @@ class LedgerEntryTest extends TestCase {
     parse_str($this->lastRequest()->getUri()->getQuery(), $query);
     $this->assertEqualsWithDelta(7 * 86400, $query['max_created'] - $query['min_created'], 5);
   }
+
+  private function sentDates(array $params): array {
+    $this->respond(['count' => 0, 'results' => []]);
+    LedgerEntry::all(5, $params);
+    parse_str($this->lastQuery(), $query);
+    return [(int)$query['min_created'], (int)$query['max_created']];
+  }
+
+  public function testAllAcceptsAnyDateTimeInterface(): void {
+    $min = new \DateTimeImmutable('2026-01-01 00:00:00 UTC');
+    $max = new \DateTime('2026-01-31 00:00:00 UTC');
+
+    $this->assertSame([$min->getTimestamp(), $max->getTimestamp()], $this->sentDates(['min_created' => $min, 'max_created' => $max]));
+  }
+
+  public function testAllKeepsASingleBoundThatWasGiven(): void {
+    [$min, $max] = $this->sentDates(['min_created' => 1767225600]);
+    $this->assertSame(1767225600, $min);
+    $this->assertEqualsWithDelta(time(), $max, 5);
+
+    [$min, $max] = $this->sentDates(['max_created' => 1767225600]);
+    $this->assertSame([1767225600 - 7 * 86400, 1767225600], [$min, $max]);
+  }
 }

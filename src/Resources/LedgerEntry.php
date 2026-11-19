@@ -25,17 +25,15 @@ class LedgerEntry extends Resource {
     int $shop_id,
     array $params = []
   ): \Etsy\Collection {
-    // Default period is 7 days. If either is not set, or only one set we override with the default.
-    if(!isset($params['min_created']) || !isset($params['max_created'])) {
-      $params['min_created'] = Date::now()->modify('-1 week')->getTimestamp();
-      $params['max_created'] = Date::now()->getTimestamp();
+    // Dates can be timestamps or any DateTimeInterface. max_created defaults
+    // to now, and min_created to a week before max_created.
+    foreach(['min_created', 'max_created'] as $key) {
+      if(($params[$key] ?? null) instanceof \DateTimeInterface) {
+        $params[$key] = $params[$key]->getTimestamp();
+      }
     }
-    if($params['min_created'] instanceof \DateTime) {
-      $params['min_created'] = $params['min_created']->getTimestamp();
-    }
-    if($params['max_created'] instanceof \DateTime) {
-      $params['max_created'] = $params['max_created']->getTimestamp();
-    }
+    $params['max_created'] = $params['max_created'] ?? Date::now()->getTimestamp();
+    $params['min_created'] = $params['min_created'] ?? (int)$params['max_created'] - 7 * 86400;
     return self::requestCollection(
       "GET",
       "/application/shops/{$shop_id}/payment-account/ledger-entries",
