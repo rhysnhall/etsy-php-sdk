@@ -21,6 +21,10 @@
 - `Transaction::allByReceipt()` now sends its `$params`, and `Listing::linkFile()` now sends `$rank`.
 - `isset()` and `empty()` now work on resource properties. Previously `isset($listing->title)` was always `false` and `empty($listing->tags)` was always `true`.
 - `save()` can now clear a field. On `Listing`, `EconomicOperator`, `Receipt` and `ProcessingProfile`, setting a field to `null` or `[]` and saving sends an empty value. Previously the field was left out, so the save did nothing.
+- Resources no longer include a `uri` property (the request path) in their data, `toArray()` or `toJson()`.
+- Uploading from a path that can't be read now throws a `RequestException` naming the path, instead of a PHP warning followed by an unclear request error.
+- `LedgerEntry::all()` accepts `DateTimeImmutable` (any `DateTimeInterface`) for `min_created` and `max_created`. If you pass only one of them, it's kept: `max_created` defaults to now, and `min_created` to a week before `max_created`. Previously, passing only one replaced both with the past week.
+- Translations included with a listing (`includes` `Translations`) are now `ListingTranslation` resources that can be saved, and `$listing->translation()` uses them instead of making another request.
 - `User::get()` returns `null` when the token has no user, instead of requesting `/users/` with no ID. Its parameter is now explicitly nullable, avoiding a PHP 8.4 deprecation notice.
 
 ### Changes
@@ -29,6 +33,12 @@
 - `paginate()` now works for `Receipt`, `Transaction`, `LedgerEntry`, `ShippingDestination`, `ProcessingProfile` and `UserAddress` collections.
 - Requests now time out: 10 seconds to connect and 60 seconds for a response (uploads have no response limit). Change these with the `timeout` and `connect_timeout` config options; `0` means no limit.
 - `ListingPersonalization::save()` takes an optional second argument, `$supportMultipleQuestions`.
+- Token requests (`requestAccessToken()`, `refreshAccessToken()` and `exchangeLegacyToken()`) also return `expires_in` and `expires_at`.
+- `Client::scopes()` uses the client's current access token when none is passed. With no token at all, it throws an `OAuthException` instead of a PHP error.
+- Uploads accept an open stream as well as a path or `['contents' => ...]`.
+- `Listing::uploadVideo()` takes an optional `$options` array, like `uploadImage()`.
+- Added `ListingProperty::get()`. Etsy's single-property endpoint only returns 501 for now, so it finds the property in the listing's properties.
+- `ApiException` now extends `SdkException` and is deprecated. Code that catches `ApiException` still works.
 
 ## v1.4.1
 

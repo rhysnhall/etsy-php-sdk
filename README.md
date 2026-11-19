@@ -100,9 +100,10 @@ $tokens = $client->requestAccessToken(
 
 $accessToken = $tokens['access_token'];
 $refreshToken = $tokens['refresh_token'];
+$expiresAt = $tokens['expires_at']; // Unix time the access token expires
 ```
 
-Store both tokens. The access token lasts **1 hour**; the refresh token lasts **90 days**.
+Store both tokens. The access token lasts **1 hour**; the refresh token lasts **90 days**. The array also includes `expires_in` (the access token's lifetime in seconds) and `expires_at`, so you can refresh before the token runs out.
 
 ### Refreshing the access token
 
@@ -122,6 +123,8 @@ To see which scopes a token has:
 $etsy = new Etsy($keystring, $sharedSecret, $accessToken);
 $scopes = $etsy->scopes(); // e.g. ['listings_r', 'shops_r']
 ```
+
+`Etsy::$client->scopes()` does the same, and you can pass it a different token to check.
 
 ### Legacy OAuth 1.0 tokens
 
@@ -205,6 +208,8 @@ $images = $listing->images();
 $inventory = $listing->inventory();
 $german = $listing->translation('de');
 ```
+
+Methods like `inventory()`, `personalization()` and `translation()` use the data included with the resource when it's there, and only make a request when it isn't. For example, after `Listing::get($listingId, ['includes' => 'Translations'])`, `$listing->translation('de')` makes no request, and `$listing->translations` maps each language to a `ListingTranslation` (or `null` if there's no translation for it).
 
 The [resource reference](docs/resources.md) lists every method.
 
@@ -355,7 +360,7 @@ Get the inventory for up to 100 of your listings in one request with `Listing::a
 
 ## Uploading files
 
-Listing images, videos and digital files are uploaded as multipart form data. Pass a file path (or a URL, if PHP's `allow_url_fopen` is on), or pass a stream or string as `contents`:
+Listing images, videos and digital files are uploaded as multipart form data. Pass a file path (or a URL, if PHP's `allow_url_fopen` is on), an open stream, or a stream or string as `contents`. If a path can't be read, the SDK throws a `RequestException` naming it, before anything is sent:
 
 ```php
 use Etsy\Resources\{ListingImage, ListingVideo, ListingFile};
@@ -423,8 +428,9 @@ The SDK throws these exceptions, all in the `Etsy\Exception` namespace:
 |---|---|
 | `RequestException` | Etsy returns an error response, or the request fails to connect or times out. The message includes Etsy's error. For HTTP errors, `getCode()` returns the status code. |
 | `OAuthException` | A token request fails, or the client is created without a keystring or shared secret. |
-| `SdkException` | A method is used in a way the SDK or Etsy doesn't support, such as paginating a collection that doesn't support it. |
-| `ApiException` | Required input is missing, such as searching shops without a keyword. |
+| `SdkException` | A method is used in a way the SDK or Etsy doesn't support, such as paginating a collection that doesn't support it, or required input is missing, such as searching shops without a keyword. |
+
+Searching shops without a keyword throws `ApiException`, which is a subclass of `SdkException`. `ApiException` is deprecated, so catch `SdkException` in new code.
 
 The original Guzzle exception is available from `getPrevious()`.
 

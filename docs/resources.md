@@ -180,10 +180,10 @@ A listing. `Listing::create()` creates a draft; publish it by setting `state` to
 | `$listing->videos()`<br>Get the videos for the listing. | `Collection` | `ListingVideo::all()` |
 | `$listing->video(int $video_id)`<br>Get a specific listing video. | `ListingVideo\|null` | `ListingVideo::get()` |
 | `$listing->linkVideo(int $video_id)`<br>Link an existing video to the listing. | `ListingVideo\|null` | `ListingVideo::create()` |
-| `$listing->uploadVideo(mixed $video, string $name)`<br>Upload a video to the listing. | `ListingVideo\|null` | `ListingVideo::create()` |
+| `$listing->uploadVideo(mixed $video, string $name, array $options = [])`<br>Upload a video to the listing. | `ListingVideo\|null` | `ListingVideo::create()` |
 | `$listing->inventory(array $params = [])`<br>Get the listing inventory. Uses the inventory already attached to the listing if present. | `ListingInventory\|null` | `ListingInventory::get()` |
 | `$listing->product(int $product_id)`<br>Get a listing product. | `ListingProduct\|null` | `ListingProduct::get()` |
-| `$listing->translation(string $language)`<br>Get a listing translation. | `ListingTranslation\|null` | `ListingTranslation::get()` |
+| `$listing->translation(string $language)`<br>Get a listing translation. Uses translations included with the listing if present. | `ListingTranslation\|null` | `ListingTranslation::get()` |
 | `$listing->personalization()`<br>Get the listing personalization. Uses personalization included with the listing if present. | `ListingPersonalization\|null` | `ListingPersonalization::get()` |
 
 Fields sent by `save()`: `image_ids`, `title`, `description`, `materials`, `should_auto_renew`, `shipping_profile_id`, `return_policy_id`, `shop_section_id`, `item_weight`, `item_length`, `item_width`, `item_height`, `item_weight_unit`, `item_dimensions_unit`, `is_taxable`, `taxonomy_id`, `tags`, `who_made`, `when_made`, `featured_rank`, `is_personalizable`, `state`, `is_supply`, `production_partner_ids`, `type`, `gpsr_manufacturer_type`, `gpsr_manufacturer_id`, `gpsr_responsible_person_type`, `gpsr_responsible_person_id`, `gpsr_serial_number`, `gpsr_safety_warnings`, `ecgt_garan_brand`, `ecgt_garan_years`, `ecgt_garan_model`, `ecgt_garan_guarantee_details`, `ecgt_other_commercial_guarantee_details`, `ecgt_after_sales_service_info`, `ecgt_software_update_details`.
@@ -231,6 +231,7 @@ Taxonomy properties (attributes) set on a listing.
 | Method | Returns | Etsy endpoint | Scope |
 |---|---|---|---|
 | `ListingProperty::all(int $shop_id, int $listing_id)`<br>Get all properties for a listing. | `Collection` | [`GET /shops/{shop_id}/listings/{listing_id}/properties`](https://developers.etsy.com/documentation/reference#operation/getListingProperties) | none |
+| `ListingProperty::get(int $shop_id, int $listing_id, int $property_id)`<br>Get a single property of a listing. Fetches the listing's properties and returns the matching one, as Etsy's single-property endpoint only returns 501. | `ListingProperty\|null` |  |  |
 | `ListingProperty::update(int $shop_id, int $listing_id, int $property_id, $data)`<br>Updates a listing property. | `ListingProperty\|null` | [`PUT /shops/{shop_id}/listings/{listing_id}/properties/{property_id}`](https://developers.etsy.com/documentation/reference#operation/updateListingProperty) | `listings_w` |
 | `ListingProperty::delete(int $shop_id, int $listing_id, int $property_id)`<br>Delete a listing property. | `bool` | [`DELETE /shops/{shop_id}/listings/{listing_id}/properties/{property_id}`](https://developers.etsy.com/documentation/reference#operation/deleteListingProperty) | `listings_w` |
 
