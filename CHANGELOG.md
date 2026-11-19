@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+- `ListingPersonalization::update()`, `ListingProperty::update()` and `Listing::linkImage()` now declare their `$data` or `$options` parameter as `array` (and `$supportMultipleQuestions` as `bool`). They only ever worked with these types, so passing anything else now fails at the call instead of inside the SDK.
+
 ## v1.5.0
 
 This release fixes a large number of bugs found in a full review of the SDK, many of them in saving resources, and adds tracking submission, request timeouts and token expiry times. It has no breaking API changes, but read the upgrade notes for a few behaviour changes.
