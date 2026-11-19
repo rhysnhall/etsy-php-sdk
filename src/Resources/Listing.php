@@ -634,16 +634,15 @@ class Listing extends Resource {
    */
   public function uploadVideo(
     mixed $video,
-    string $name
+    string $name,
+    array $options = []
   ): ?\Etsy\Resources\ListingVideo {
-    $data = [
-      'video' => $video,
-      'name' => $name
-    ];
+    $options['video'] = $video;
+    $options['name'] = $name;
     return ListingVideo::create(
       $this->shop_id,
       $this->listing_id,
-      $data
+      $options
     );
   }
 

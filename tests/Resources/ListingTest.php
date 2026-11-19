@@ -156,6 +156,21 @@ class ListingTest extends TestCase {
     $this->assertSame(['listing_file_id' => '77', 'rank' => '3'], $this->lastForm());
   }
 
+  public function testUploadVideoSendsOptions(): void {
+    $listing = new Listing(json_decode('{"listing_id": 11, "shop_id": 5}'));
+    $stream = fopen('php://memory', 'r+');
+    fwrite($stream, 'video-bytes');
+    rewind($stream);
+    $this->respond(['video_id' => 9]);
+
+    $listing->uploadVideo($stream, 'mug.mp4', ['video_id' => 9]);
+
+    $this->assertLastRequest('POST', '/application/shops/5/listings/11/videos');
+    $body = (string)$this->lastRequest()->getBody();
+    $this->assertMatchesRegularExpression('/name="video_id"\r\n[^\r]*\r\n\r\n9\r\n/', $body);
+    $this->assertMatchesRegularExpression('/name="name"\r\n[^\r]*\r\n\r\nmug\.mp4\r\n/', $body);
+  }
+
   public function testCreateSendsFormData(): void {
     $this->respond(['listing_id' => 99, 'shop_id' => 5], 201);
     Listing::create(5, ['title' => 'Mug', 'quantity' => 1]);
