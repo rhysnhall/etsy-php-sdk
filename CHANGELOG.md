@@ -1,6 +1,16 @@
 # Changelog
 
-## Unreleased
+## v1.5.0
+
+This release fixes a large number of bugs found in a full review of the SDK, many of them in saving resources, and adds tracking submission, request timeouts and token expiry times. It has no breaking API changes, but read the upgrade notes for a few behaviour changes.
+
+### Upgrade notes
+- **Requests now time out.** Requests that used to wait indefinitely now fail with a `RequestException` after 60 seconds (10 seconds to connect). Uploads have no response limit. If you have unusually slow requests, raise the `timeout` config option, or set it to `0` for no limit.
+- **Collections return empty on a 404** instead of failing with a PHP error. Set `404_error` to keep getting a `RequestException`.
+- **`isset()` and `empty()` on resource properties now give the right answer.** Code that relied on `isset($resource->field)` always being `false` will now take the other branch.
+- **`LedgerEntry::all()` keeps a single date you pass**, instead of replacing both dates with the past week.
+- **Resources no longer have a `uri` property.** It was the request path, not Etsy data.
+- **Deprecated:** `Shipment::create()` (use `Receipt::createShipment()` or `$receipt->addTracking()`) and `ApiException` (catch `SdkException`). Both still work and will be removed in 2.0.
 
 ### Fixes
 - Methods that return a collection now return an empty collection when Etsy returns a 404, instead of failing with a PHP error. Set the `404_error` option to throw a `RequestException` instead, as before.
@@ -13,7 +23,6 @@
 - `LedgerEntry::all()` now sets `shop_id` on each entry, so `$entry->payments()` works.
 - Personalization included with a listing (via `includes`) can now be saved.
 - `toArray()` and `toJson()` now include nested resources, such as included images and inventory products, instead of empty objects.
-
 - `$receipt->transactions` and `$receipt->transactions()` use the transactions included with the receipt, instead of making another request per receipt.
 - `$listing->personalization()` uses personalization included with the listing, instead of making another request.
 - `ListingPersonalization::save()` now sends `supports_multiple_personalization_questions`, like `update()`. Without it, saving dropdown, upload or multiple questions could fail.
