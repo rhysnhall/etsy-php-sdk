@@ -3,7 +3,6 @@
 namespace Etsy\Resources;
 
 use Etsy\Resource;
-use Etsy\Exception\ApiException;
 use Etsy\Resources\{
   Review,
   Transaction,

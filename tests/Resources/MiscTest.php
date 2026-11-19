@@ -19,6 +19,18 @@ class MiscTest extends TestCase {
     }
   }
 
+  public function testShopSearchWithoutKeywordThrowsSdkException(): void {
+    try {
+      \Etsy\Resources\Shop::all('  ');
+      $this->fail('Expected an exception.');
+    }
+    catch(SdkException $e) {
+      // Still an ApiException, for code that catches that.
+      $this->assertInstanceOf(\Etsy\Exception\ApiException::class, $e);
+      $this->assertSame(0, $this->client->requestCount());
+    }
+  }
+
   public function testAllScopesOnlyContainsCurrentScopes(): void {
     $this->assertNotContains('billing_r', PermissionScopes::ALL_SCOPES);
     $this->assertNotContains('feedback_r', PermissionScopes::ALL_SCOPES);

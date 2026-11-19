@@ -3,7 +3,6 @@
 namespace Etsy;
 
 use Etsy\OAuth\Client;
-use Etsy\Exception\ApiException;
 
 class Etsy {
 
