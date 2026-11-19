@@ -52,8 +52,8 @@ class ListingPersonalization extends Resource {
   public static function update(
     int $shop_id,
     int $listing_id,
-    $data,
-    $supportMultipleQuestions = true
+    array $data,
+    bool $supportMultipleQuestions = true
   ): ?\Etsy\Resources\ListingPersonalization {
     $supportsMultiple = $supportMultipleQuestions ? 'true' : 'false';
     $listingPersonalization = self::request(

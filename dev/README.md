@@ -44,6 +44,15 @@ php dev/generate-resource-docs.php
 
 Descriptions and groupings are set in the script. It warns about any endpoint the SDK calls that's missing from Etsy's spec, and stops if a new resource class hasn't been added to its list.
 
+## Updating the endpoint list
+
+`tests/EndpointsTest.php` calls every resource method and checks each request it makes is an endpoint in Etsy's API spec. The endpoints are saved in `tests/fixtures/endpoints.json`, so the tests don't need a network connection. When Etsy changes the API, rebuild the list and run the tests:
+
+```
+php dev/update-endpoints.php
+composer test
+```
+
 ## Rotating keys
 
 - **New keystring or shared secret:** paste them into `dev/.env`, then reconnect (setup steps 5 and 6). Running `php dev/check.php` first confirms the new keys work.

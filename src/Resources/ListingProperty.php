@@ -78,7 +78,7 @@ class ListingProperty extends Resource {
     int $shop_id,
     int $listing_id,
     int $property_id,
-    $data
+    array $data
   ): ?\Etsy\Resources\ListingProperty {
     $property = self::request(
       "PUT",

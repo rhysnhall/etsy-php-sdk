@@ -539,7 +539,7 @@ class Listing extends Resource {
    */
   public function linkImage(
     int $image_id,
-    $options = []
+    array $options = []
   ): ?\Etsy\Resources\ListingImage {
     $options['listing_image_id'] = $image_id;
     return ListingImage::create(
