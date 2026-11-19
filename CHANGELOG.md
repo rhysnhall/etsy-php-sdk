@@ -19,6 +19,8 @@
 - `ListingPersonalization::save()` now sends `supports_multiple_personalization_questions`, like `update()`. Without it, saving dropdown, upload or multiple questions could fail.
 - `ShippingProfile::destinations()` and `upgrades()` no longer replace the profile's included destinations and upgrades with a collection.
 - `Transaction::allByReceipt()` now sends its `$params`, and `Listing::linkFile()` now sends `$rank`.
+- `isset()` and `empty()` now work on resource properties. Previously `isset($listing->title)` was always `false` and `empty($listing->tags)` was always `true`.
+- `save()` can now clear a field. On `Listing`, `EconomicOperator`, `Receipt` and `ProcessingProfile`, setting a field to `null` or `[]` and saving sends an empty value. Previously the field was left out, so the save did nothing.
 - `User::get()` returns `null` when the token has no user, instead of requesting `/users/` with no ID. Its parameter is now explicitly nullable, avoiding a PHP 8.4 deprecation notice.
 
 ### Changes

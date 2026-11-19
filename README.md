@@ -296,6 +296,16 @@ $listing->save();
 - `Listing`, `EconomicOperator`, `Receipt` and `ProcessingProfile` send only the fields you changed, and skip the request if nothing changed. Array fields such as `tags` are sent whole.
 - Other resources send all of their editable fields each time.
 
+To clear a field on these resources, set it to `null` (or `[]` for an array field) and save. The SDK sends it as an empty value, which Etsy treats as a request to clear the field:
+
+```php
+$listing->tags = [];
+$listing->item_weight = null;
+$listing->save();
+```
+
+When you call `update()` or pass data to `save()` directly, a `null` value is left out of the request. Send `''` instead to clear the field.
+
 You can also pass the data to send directly: `$listing->save(['title' => 'New title'])`.
 
 After saving, the resource is updated with the values Etsy returns. If Etsy rejects the change, `save()` throws a `RequestException`, including for a 404 whatever the `404_error` setting.

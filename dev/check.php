@@ -275,6 +275,60 @@ else {
         ListingPersonalization::delete($shopId, $draftId);
         $d = count($questions) . ' question saved, then removed';
       });
+
+      // save() sends a field set to null or [] as an empty string. Check Etsy
+      // treats that as "clear this field". If it doesn't, try other encodings
+      // and report which (if any) work.
+      $clearChecks = [
+        'tags' => [['sdk-test', 'mug'], []],
+        'materials' => [['clay'], []],
+        'item_weight' => [1.5, null, ['item_weight_unit' => 'oz']],
+      ];
+      foreach($clearChecks as $field => $spec) {
+        [$setValue, $clearValue, $extra] = $spec + [2 => []];
+        check("Listing::save() clears {$field}", function(&$d) use ($draftId, $shopId, $field, $setValue, $clearValue, $extra) {
+          $isEmpty = fn($listing) => empty($listing->{$field});
+          Listing::update($shopId, $draftId, [$field => $setValue] + $extra);
+          if($isEmpty(Listing::get($draftId))) {
+            throw new RuntimeException("Could not set {$field} before clearing it.");
+          }
+          $listing = Listing::get($draftId);
+          $listing->{$field} = $clearValue;
+          $error = null;
+          try {
+            $listing->save();
+          }
+          catch(Throwable $e) {
+            $error = $e->getMessage();
+          }
+          $after = Listing::get($draftId);
+          if(!$error && $isEmpty($after)) {
+            $d = 'sent as an empty string';
+            return;
+          }
+          $value = json_encode($after->{$field});
+          // Work out what Etsy does accept, to report back.
+          $alternatives = is_array($setValue)
+            ? ["{$field}[]=" => [$field => ['']], "{$field}[]=(space)" => [$field => [' ']]]
+            : ["{$field}=0" => [$field => 0]];
+          $worked = [];
+          foreach($alternatives as $label => $data) {
+            Listing::update($shopId, $draftId, [$field => $setValue] + $extra);
+            try {
+              Listing::update($shopId, $draftId, $data);
+              if($isEmpty(Listing::get($draftId))) {
+                $worked[] = $label;
+              }
+            }
+            catch(Throwable $e) {
+            }
+          }
+          throw new RuntimeException(
+            "Empty string " . ($error ? "was rejected: {$error}" : "left {$field} as {$value}") . '. '
+            . 'Alternatives that cleared it: ' . ($worked ? implode(', ', $worked) : 'none') . '.'
+          );
+        });
+      }
     }
   }
   catch(SkipCheck $e) {
