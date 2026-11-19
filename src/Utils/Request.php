@@ -71,11 +71,17 @@ class Request {
     if(is_resource($file) || $file instanceof StreamInterface) {
       return $file;
     }
-    if(!is_string($file) || !is_file($file) || !is_readable($file)) {
-      $path = is_string($file) ? $file : gettype($file);
-      throw new RequestException("Can't read the file to upload: {$path}");
+    if(!is_string($file)) {
+      throw new RequestException("Can't read the file to upload: expected a path, stream or ['contents' => ...], got " . gettype($file) . ".");
     }
-    return fopen($file, 'r');
+    // Local paths are checked first. URLs and other stream wrappers (when
+    // allow_url_fopen permits) are opened directly.
+    $isLocal = !preg_match('#^[a-z][a-z0-9+.-]*://#i', $file) || stripos($file, 'file://') === 0;
+    $handle = (!$isLocal || (is_file($file) && is_readable($file))) ? @fopen($file, 'r') : false;
+    if($handle === false) {
+      throw new RequestException("Can't read the file to upload: {$file}");
+    }
+    return $handle;
   }
 
   /**

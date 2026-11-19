@@ -130,6 +130,13 @@ class ClientRequestTest extends TestCase {
     $this->client->post('/application/shops/1/listings/2/images', ['image' => '/no/such/mug.jpg']);
   }
 
+  public function testUploadAcceptsStreamWrapperUrls(): void {
+    $this->respond();
+    $this->client->post('/application/shops/1/listings/2/images', ['image' => 'data://text/plain;base64,' . base64_encode('url-bytes')]);
+
+    $this->assertStringContainsString('url-bytes', (string)$this->lastRequest()->getBody());
+  }
+
   public function testUploadAcceptsAnOpenStream(): void {
     $stream = fopen('php://memory', 'r+');
     fwrite($stream, 'image-bytes');
