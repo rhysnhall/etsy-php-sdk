@@ -55,7 +55,8 @@ class ClientAuthTest extends TestCase {
     $this->respond(['access_token' => 'new-access', 'refresh_token' => 'new-refresh']);
     $tokens = $this->client->requestAccessToken('https://example.com/callback', 'auth-code', 'verifier');
 
-    $this->assertSame(['access_token' => 'new-access', 'refresh_token' => 'new-refresh'], $tokens);
+    $this->assertSame('new-access', $tokens['access_token']);
+    $this->assertSame('new-refresh', $tokens['refresh_token']);
     $this->assertSame('https://api.etsy.com/v3/public/oauth/token', (string)$this->lastRequest()->getUri());
     $this->assertSame([
       'grant_type' => 'authorization_code',
@@ -76,6 +77,24 @@ class ClientAuthTest extends TestCase {
       'client_id' => 'keystring',
       'refresh_token' => 'old-refresh',
     ], $this->lastForm());
+  }
+
+  public function testTokenResponsesIncludeExpiry(): void {
+    $this->respond(['access_token' => 'a', 'refresh_token' => 'r', 'expires_in' => 3600, 'token_type' => 'Bearer']);
+    $before = time();
+    $tokens = $this->client->refreshAccessToken('old-refresh');
+
+    $this->assertSame(3600, $tokens['expires_in']);
+    $this->assertGreaterThanOrEqual($before + 3600, $tokens['expires_at']);
+    $this->assertLessThanOrEqual(time() + 3600, $tokens['expires_at']);
+  }
+
+  public function testTokenExpiryIsNullWhenEtsyOmitsIt(): void {
+    $this->respond(['access_token' => 'a', 'refresh_token' => 'r']);
+    $tokens = $this->client->requestAccessToken('https://example.com/callback', 'code', 'verifier');
+
+    $this->assertNull($tokens['expires_in']);
+    $this->assertNull($tokens['expires_at']);
   }
 
   public function testTokenErrorIncludesEtsyDescription(): void {

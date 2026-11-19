@@ -227,11 +227,7 @@ class Client {
     $client = $this->createHttpClient();
     try {
       $response = $client->post(self::TOKEN_URL, ['form_params' => $params] + $this->timeouts());
-      $response = json_decode($response->getBody(), false);
-      return [
-        'access_token' => $response->access_token,
-        'refresh_token' => $response->refresh_token
-      ];
+      return $this->tokenResponse($response);
     }
     catch(\Exception $e) {
       $this->handleAcessTokenError($e);
@@ -256,11 +252,7 @@ class Client {
     $client = $this->createHttpClient();
     try {
       $response = $client->post(self::TOKEN_URL, ['form_params' => $params] + $this->timeouts());
-      $response = json_decode($response->getBody(), false);
-      return [
-        'access_token' => $response->access_token,
-        'refresh_token' => $response->refresh_token
-      ];
+      return $this->tokenResponse($response);
     }
     catch(\Exception $e) {
       $this->handleAcessTokenError($e);
@@ -285,17 +277,32 @@ class Client {
     $client = $this->createHttpClient();
     try {
       $response = $client->post(self::TOKEN_URL, ['form_params' => $params] + $this->timeouts());
-      $response = json_decode($response->getBody(), false);
-      return [
-        'access_token' => $response->access_token,
-        'refresh_token' => $response->refresh_token
-      ];
+      return $this->tokenResponse($response);
     }
     catch(\Exception $e) {
       $this->handleAcessTokenError($e);
     }
   }
 
+
+  /**
+   * Reads the tokens from a token endpoint response. expires_in is the access
+   * token's lifetime in seconds (an hour); expires_at is the Unix time it
+   * expires, for storing alongside the token.
+   *
+   * @param \Psr\Http\Message\ResponseInterface $response
+   * @return array
+   */
+  private function tokenResponse($response): array {
+    $response = json_decode($response->getBody(), false);
+    $expires_in = isset($response->expires_in) ? (int)$response->expires_in : null;
+    return [
+      'access_token' => $response->access_token,
+      'refresh_token' => $response->refresh_token,
+      'expires_in' => $expires_in,
+      'expires_at' => $expires_in === null ? null : time() + $expires_in,
+    ];
+  }
 
   /**
    * Handles OAuth errors.
