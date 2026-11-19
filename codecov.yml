@@ -1,0 +1,13 @@
+# Report coverage on pull requests without failing them.
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
+comment:
+  layout: "diff, files"
+  require_changes: true

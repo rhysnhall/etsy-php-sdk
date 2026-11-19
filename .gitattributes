@@ -1,3 +1,5 @@
 /dev export-ignore
 /tests export-ignore
 /phpunit.xml.dist export-ignore
+/.github export-ignore
+/codecov.yml export-ignore

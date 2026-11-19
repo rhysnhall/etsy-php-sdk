@@ -2,6 +2,8 @@
 
 [![Latest version](https://img.shields.io/packagist/v/rhysnhall/etsy-php-sdk.svg)](https://packagist.org/packages/rhysnhall/etsy-php-sdk)
 [![License](https://img.shields.io/packagist/l/rhysnhall/etsy-php-sdk.svg)](LICENSE.md)
+[![Tests](https://github.com/rhysnhall/etsy-php-sdk/actions/workflows/tests.yml/badge.svg?branch=1.0)](https://github.com/rhysnhall/etsy-php-sdk/actions/workflows/tests.yml)
+[![Coverage](https://codecov.io/gh/rhysnhall/etsy-php-sdk/branch/1.0/graph/badge.svg)](https://codecov.io/gh/rhysnhall/etsy-php-sdk)
 
 A PHP SDK for the [Etsy Open API v3](https://developers.etsy.com/documentation/). It handles OAuth 2.0 authentication and wraps the API's endpoints in resource classes, so you can work with listings, orders, shipping profiles and more as PHP objects.
 
@@ -496,6 +498,8 @@ The test suite uses a fake HTTP client, so it needs no Etsy credentials and make
 composer install
 composer test
 ```
+
+GitHub Actions runs the tests on PHP 8.0 to 8.5 for every push and pull request, and reports coverage to [Codecov](https://codecov.io/gh/rhysnhall/etsy-php-sdk).
 
 To check the SDK against the live Etsy API with your own app and shop, see [dev/README.md](dev/README.md).
 
