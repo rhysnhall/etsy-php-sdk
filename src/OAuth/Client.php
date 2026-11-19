@@ -30,6 +30,13 @@ class Client {
   protected $client_id;
 
   /**
+   * The user's OAuth access token.
+   *
+   * @var string|null
+   */
+  protected $api_key;
+
+  /**
    * @var array
    */
   protected $request_headers = [];
@@ -102,6 +109,7 @@ class Client {
    * @return void
    */
   public function setApiKey($api_key) {
+    $this->api_key = $api_key;
     $this->headers['Authorization'] = "Bearer {$api_key}";
   }
 
@@ -391,15 +399,21 @@ class Client {
   }
 
   /**
-   * Check the scopes of the current API key (client ID).
-   * 
+   * Check the scopes granted to an access token. Defaults to the client's
+   * current access token.
+   *
    * @link https://developers.etsy.com/documentation/reference/#operation/tokenScopes
-   * @param string $token
+   * @param string|null $token
    * @return array
+   * @throws OAuthException When no token is given and the client has none.
    */
   public function scopes(
-    string $token
+    ?string $token = null
   ): array {
+    $token = $token ?? $this->api_key;
+    if(!$token) {
+      throw new OAuthException("No access token to check. Pass one to scopes() or set one with setApiKey().");
+    }
     $response = $this->post('/application/scopes', [
       'token' => $token
     ]);

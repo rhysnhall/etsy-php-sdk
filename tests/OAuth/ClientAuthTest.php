@@ -126,6 +126,21 @@ class ClientAuthTest extends TestCase {
     $this->assertSame(['token' => 'access-token'], $this->lastForm());
   }
 
+  public function testScopesDefaultsToTheCurrentToken(): void {
+    $this->client->setApiKey('current-token');
+    $this->respond(['scopes' => ['listings_r']]);
+
+    $this->assertSame(['listings_r'], $this->client->scopes());
+    $this->assertSame(['token' => 'current-token'], $this->lastForm());
+  }
+
+  public function testScopesWithoutAnyTokenThrows(): void {
+    $client = new \Etsy\Tests\Support\FakeClient('keystring', 'secret');
+
+    $this->expectException(OAuthException::class);
+    $client->scopes();
+  }
+
   public function testPing(): void {
     $this->respond(['application_id' => 123]);
 
