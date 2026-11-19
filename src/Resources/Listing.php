@@ -687,6 +687,11 @@ class Listing extends Resource {
   public function translation(
     string $language
   ): ?\Etsy\Resources\ListingTranslation {
+    // Use translations already included with the listing, if present.
+    $included = $this->_properties->translations->{$language} ?? null;
+    if($included instanceof ListingTranslation) {
+      return $included;
+    }
     return ListingTranslation::get(
       $this->shop_id,
       $this->listing_id,
@@ -709,6 +714,32 @@ class Listing extends Resource {
       $this->shop_id,
       $this->listing_id
     );
+  }
+
+  /**
+   * Links included associations. Translations are a map keyed by language
+   * (with null for languages that have no translation), so each one becomes a
+   * ListingTranslation and the map is kept.
+   *
+   * @param \stdClass $properties
+   * @return \stdClass
+   */
+  protected function linkAssociations($properties) {
+    $properties = parent::linkAssociations($properties);
+    if(isset($properties->translations) && is_object($properties->translations)) {
+      $translations = new \stdClass;
+      foreach($properties->translations as $language => $translation) {
+        if(is_object($translation) && !$translation instanceof ListingTranslation) {
+          $translation = \Etsy\Etsy::createResource($translation, 'ListingTranslation');
+          $translation->shop_id = $properties->shop_id ?? null;
+          $translation->listing_id = $translation->listing_id ?? $properties->listing_id ?? null;
+          $translation->language = $translation->language ?? $language;
+        }
+        $translations->{$language} = $translation;
+      }
+      $properties->translations = $translations;
+    }
+    return $properties;
   }
 
   /**
