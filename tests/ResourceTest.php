@@ -21,6 +21,17 @@ class ResourceTest extends TestCase {
     $this->assertSame(['amount' => 3200, 'divisor' => 100], $array['price']);
   }
 
+  public function testRequestUriIsNotPartOfTheResource(): void {
+    $this->respond(['listing_id' => 1, 'shop_id' => 5, 'title' => 'Mug']);
+    $listing = Listing::get(1);
+    $this->assertArrayNotHasKey('uri', $listing->toArray());
+
+    $listing->title = 'New';
+    $this->respond(['listing_id' => 1, 'shop_id' => 5, 'title' => 'New']);
+    $listing->save();
+    $this->assertArrayNotHasKey('uri', $listing->toArray());
+  }
+
   public function testIssetAndEmptySeeProperties(): void {
     $this->respond(['listing_id' => 1, 'title' => 'Mug', 'tags' => ['a'], 'materials' => [], 'item_weight' => null]);
     $listing = Listing::get(1);

@@ -109,6 +109,12 @@ class Etsy {
     string $resource
   ) {
     $resource = __NAMESPACE__ . "\\Resources\\{$resource}";
+    // The client adds the request URI to each response for paginating
+    // collections. It isn't part of the resource's data.
+    if(is_object($record) && isset($record->uri)) {
+      $record = clone $record;
+      unset($record->uri);
+    }
     return new $resource($record);
   }
 
