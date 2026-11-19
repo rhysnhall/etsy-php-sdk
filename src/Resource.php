@@ -80,6 +80,17 @@ class Resource {
   }
 
   /**
+   * Lets isset() and empty() see the resource's properties.
+   *
+   * @param integer|string $property
+   * @return bool
+   */
+  public function __isset($property) {
+    $properties = array_change_key_case((array)$this->_properties);
+    return isset($properties[strtolower($property)]);
+  }
+
+  /**
    * Sets a property on the resource by adding it to the _properties attribute.
    *
    * @param integer|string $property
@@ -281,8 +292,11 @@ class Resource {
   }
 
   /**
-   * Get the saveable data.
-   * 
+   * Get the saveable data. When patching, a field that has been set to null
+   * or an empty array is sent as an empty string so Etsy clears it, as form
+   * encoding would otherwise drop it from the request entirely.
+   *
+   * @param bool $patch Only include fields that have changed.
    * @return array
    */
   protected function getSaveData($patch = false) {
@@ -297,8 +311,15 @@ class Resource {
     }
     $data = [];
     foreach($this->_saveable as $key) {
-      if(isset($changed[$key])) {
-        $data[$key] = $changed[$key];
+      if(!array_key_exists($key, $changed)) {
+        continue;
+      }
+      $value = $changed[$key];
+      if($patch && ($value === null || $value === [])) {
+        $data[$key] = '';
+      }
+      else if(isset($value)) {
+        $data[$key] = $value;
       }
     }
     return $data;

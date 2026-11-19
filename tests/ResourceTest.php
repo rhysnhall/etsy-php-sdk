@@ -21,6 +21,18 @@ class ResourceTest extends TestCase {
     $this->assertSame(['amount' => 3200, 'divisor' => 100], $array['price']);
   }
 
+  public function testIssetAndEmptySeeProperties(): void {
+    $this->respond(['listing_id' => 1, 'title' => 'Mug', 'tags' => ['a'], 'materials' => [], 'item_weight' => null]);
+    $listing = Listing::get(1);
+
+    $this->assertTrue(isset($listing->title));
+    $this->assertTrue(isset($listing->Title));
+    $this->assertFalse(empty($listing->tags));
+    $this->assertTrue(empty($listing->materials));
+    $this->assertFalse(isset($listing->item_weight));
+    $this->assertFalse(isset($listing->nothing));
+  }
+
   private function saveListingWith(array $original, callable $change): ?array {
     $this->respond(['listing_id' => 1, 'shop_id' => 5] + $original);
     $listing = Listing::get(1);
@@ -56,6 +68,25 @@ class ResourceTest extends TestCase {
     $sent = $this->saveListingWith(['is_supply' => null], fn($l) => $l->is_supply = false);
 
     $this->assertSame(['is_supply' => '0'], $sent);
+  }
+
+  public function testSaveClearsAFieldSetToNull(): void {
+    $sent = $this->saveListingWith(['item_weight' => 1.5, 'title' => 'Mug'], fn($l) => $l->item_weight = null);
+
+    $this->assertSame(['item_weight' => ''], $sent);
+  }
+
+  public function testSaveClearsAnArraySetToEmpty(): void {
+    $sent = $this->saveListingWith(['tags' => ['a', 'b'], 'title' => 'Mug'], fn($l) => $l->tags = []);
+
+    $this->assertSame(['tags' => ''], $sent);
+  }
+
+  public function testSaveDoesNotSendFieldsThatWereAlreadyEmpty(): void {
+    $this->assertNull($this->saveListingWith(['item_weight' => null, 'tags' => []], function($l) {
+      $l->item_weight = null;
+      $l->tags = [];
+    }));
   }
 
   public function testSaveThrowsWhenEtsyReturnsNotFound(): void {
